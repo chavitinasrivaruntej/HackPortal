@@ -162,11 +162,13 @@ export default function ParticipantDashboard() {
                                 </div>
                             </div>
 
-                            <div className="space-y-1.5 bg-black/20 p-4 rounded-xl border border-white/5 backdrop-blur-sm inline-block w-full max-w-md">
-                                <p className="text-emerald-500/70 text-xs font-mono uppercase tracking-widest">System Status</p>
-                                <div className="flex items-center gap-2">
-                                    <span className="text-sm font-bold tracking-wide text-white">{statusInfo.msg}</span>
+                            <div className="bg-black/30 rounded-2xl border border-white/5 backdrop-blur-sm p-5 w-full max-w-md space-y-3">
+                                <p className="text-emerald-500/60 text-[10px] font-mono uppercase tracking-widest">Competition Status</p>
+                                <div className="flex items-center gap-3">
+                                    <div className={`w-3 h-3 rounded-full shrink-0 animate-pulse ${statusInfo.dot}`} />
+                                    <span className={`text-xl font-black tracking-wide uppercase ${statusInfo.color}`}>{statusInfo.text}</span>
                                 </div>
+                                <p className="text-white/50 text-xs font-mono leading-relaxed border-t border-white/5 pt-3">{statusInfo.msg}</p>
                             </div>
                         </div>
 
