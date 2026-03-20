@@ -3,32 +3,22 @@
 import { useEffect, useState } from "react";
 import { useAuthStore } from "@/store/useAuthStore";
 import { supabase } from "@/lib/supabase";
-import { AlertCircle, Megaphone, ArrowRight, FileText } from "lucide-react";
+import { AlertCircle, ArrowRight, FileText } from "lucide-react";
 import Link from "next/link";
 
 export default function ParticipantDashboard() {
     const user = useAuthStore((state) => state.user);
-    const [announcement, setAnnouncement] = useState<{ message: string; created_at: string } | null>(null);
     const [selectedProblem, setSelectedProblem] = useState<any>(null);
 
     useEffect(() => {
         const fetchDashboardData = async () => {
-            // Fetch latest announcement
-            const { data: annData } = await supabase
-                .from("announcements")
-                .select("*")
-                .order("created_at", { ascending: false })
-                .limit(1)
-                .single();
-            if (annData) setAnnouncement(annData);
-
             // Fetch Selected Problem
             if (user?.id) {
                 const { data: selectionData } = await supabase
                     .from("team_selections")
                     .select("*, problem_statements(*)")
                     .eq("team_ref_id", user.id)
-                    .single();
+                    .maybeSingle();
                 if (selectionData?.problem_statements) {
                     setSelectedProblem(selectionData.problem_statements);
                 }
@@ -36,18 +26,6 @@ export default function ParticipantDashboard() {
         };
 
         fetchDashboardData();
-
-        // Realtime for Announcements
-        const announcementSub = supabase
-            .channel('public:announcements')
-            .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'announcements' }, payload => {
-                setAnnouncement(payload.new as any);
-            })
-            .subscribe();
-
-        return () => {
-            supabase.removeChannel(announcementSub);
-        };
     }, [user]);
 
     const getStatusBanner = () => {
@@ -80,18 +58,6 @@ export default function ParticipantDashboard() {
 
     return (
         <div className="space-y-6 animate-in slide-in-from-bottom-4 duration-500 fade-in">
-            {announcement && (
-                <div className="bg-accent text-accent-foreground p-4 sm:p-5 rounded-2xl shadow-xl shadow-accent/20 flex flex-col sm:flex-row gap-4 items-start sm:items-center">
-                    <div className="bg-white/20 p-2.5 rounded-full shrink-0">
-                        <Megaphone className="w-6 h-6" />
-                    </div>
-                    <div className="flex-1">
-                        <p className="font-semibold text-[15px] leading-snug">{announcement.message}</p>
-                        <p className="text-xs opacity-80 mt-1.5">{new Date(announcement.created_at).toLocaleString()}</p>
-                    </div>
-                </div>
-            )}
-
             {getStatusBanner()}
 
             <div>

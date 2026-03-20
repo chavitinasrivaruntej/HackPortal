@@ -3,11 +3,11 @@
 import { useAuthStore } from "@/store/useAuthStore";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
-import { LogOut, Menu, X, LucideIcon } from "lucide-react";
+import { LogOut, Menu, X, LucideIcon, Sun, Moon, User, ChevronLeft } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { useTheme } from "next-themes";
-import { Sun, Moon } from "lucide-react";
+import { AnnouncementsDrawer } from "./AnnouncementsDrawer";
 
 export interface MenuItem {
     name: string;
@@ -115,6 +115,7 @@ export function DashboardLayout({
                     </div>
 
                     <div className="flex items-center gap-4">
+                        <AnnouncementsDrawer />
                         <button
                             onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
                             className="p-2 text-muted-foreground hover:bg-muted rounded-full transition-colors"
@@ -126,6 +127,8 @@ export function DashboardLayout({
                     </div>
                 </header>
 
+
+
                 {/* Page Content */}
                 <div className="flex-1 overflow-auto p-4 sm:p-6 lg:p-8">
                     <div className="max-w-6xl mx-auto">
@@ -133,6 +136,6 @@ export function DashboardLayout({
                     </div>
                 </div>
             </main>
-        </div>
+        </div >
     );
 }

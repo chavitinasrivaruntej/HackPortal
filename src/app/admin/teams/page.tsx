@@ -2,37 +2,35 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
-import { Loader2, Search, Edit2, RotateCcw, AlertCircle, Plus } from "lucide-react";
+import { Loader2, Search, Edit2, RotateCcw, AlertCircle, Plus, Trash2, Save, User as UserIcon } from "lucide-react";
 
 export default function AdminTeamsPage() {
     const [teams, setTeams] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState("");
 
-    // Status Edit Modal
-    const [editingTeam, setEditingTeam] = useState<any>(null);
-    const [newStatus, setNewStatus] = useState("");
+    // Unified Modal State: Create and Edit
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [modalMode, setModalMode] = useState<"create" | "edit">("create");
+    const [editTeamId, setEditTeamId] = useState<string | null>(null);
+    const [actionLoading, setActionLoading] = useState(false);
 
-    // New Team Modal
-    const [isAddingTeam, setIsAddingTeam] = useState(false);
-    const [addLoading, setAddLoading] = useState(false);
-    const [newTeamPayload, setNewTeamPayload] = useState({
-        team_id: "",
-        password: "",
-        team_name: "",
-        college_name: "",
-        department: "",
-        year: "1st Year",
-        status: "Active"
-    });
+    // Form State
+    const defaultTeam = { team_id: "", password: "", team_name: "", college_name: "", department: "", year: "1st Year", status: "Active" };
+    const defaultMembers = [
+        { member_role: "Team Lead", name: "", email: "", phone: "", gender: "Male" },
+        { member_role: "Member 2", name: "", email: "", phone: "", gender: "Male" },
+        { member_role: "Member 3", name: "", email: "", phone: "", gender: "Male" }
+    ];
+
+    const [teamData, setTeamData] = useState({ ...defaultTeam });
+    const [membersData, setMembersData] = useState([...defaultMembers]);
 
     const fetchTeams = async () => {
-        // Get teams joined with problem statement title
-        const { data, error } = await supabase
+        const { data } = await supabase
             .from('teams')
             .select('*, problem_statements(title)')
             .order('created_at', { ascending: false });
-
         if (data) setTeams(data);
         setLoading(false);
     };
@@ -41,11 +39,42 @@ export default function AdminTeamsPage() {
         fetchTeams();
     }, []);
 
-    const handleUpdateStatus = async () => {
-        if (!editingTeam) return;
-        await supabase.from("teams").update({ status: newStatus }).eq("id", editingTeam.id);
-        setEditingTeam(null);
-        fetchTeams(); // refresh list
+    const openCreateModal = () => {
+        setModalMode("create");
+        setTeamData({ ...defaultTeam });
+        setMembersData(JSON.parse(JSON.stringify(defaultMembers)));
+        setEditTeamId(null);
+        setIsModalOpen(true);
+    };
+
+    const openEditModal = async (team: any) => {
+        setModalMode("edit");
+        setEditTeamId(team.id);
+
+        // Set basic details
+        setTeamData({
+            team_id: team.team_id,
+            password: team.password,
+            team_name: team.team_name,
+            college_name: team.college_name || "",
+            department: team.department || "",
+            year: team.year || "1st Year",
+            status: team.status
+        });
+
+        // Fetch members for this team
+        const { data: dbMembers } = await supabase.from('team_members').select('*').eq('team_ref_id', team.id);
+
+        // Merge DB members into our 3-slot structure
+        let newMembers = JSON.parse(JSON.stringify(defaultMembers));
+        if (dbMembers && dbMembers.length > 0) {
+            newMembers = newMembers.map((slot: any) => {
+                const found = dbMembers.find((m: any) => m.member_role === slot.member_role);
+                return found ? { ...slot, name: found.name, email: found.email || "", phone: found.phone || "", gender: found.gender || "Male" } : slot;
+            });
+        }
+        setMembersData(newMembers);
+        setIsModalOpen(true);
     };
 
     const handleResetSelection = async (teamId: string, teamName: string) => {
@@ -55,29 +84,69 @@ export default function AdminTeamsPage() {
         }
     };
 
-    const handleCreateTeam = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setAddLoading(true);
-
-        const { error } = await supabase.from('teams').insert({
-            team_id: newTeamPayload.team_id,
-            password: newTeamPayload.password,
-            team_name: newTeamPayload.team_name,
-            college_name: newTeamPayload.college_name,
-            department: newTeamPayload.department,
-            year: newTeamPayload.year,
-            status: newTeamPayload.status
-        });
-
-        setAddLoading(false);
-
-        if (error) {
-            alert("Error creating team: " + error.message);
-        } else {
-            setIsAddingTeam(false);
-            setNewTeamPayload({ team_id: "", password: "", team_name: "", college_name: "", department: "", year: "1st Year", status: "Active" });
-            fetchTeams();
+    const handleDeleteTeam = async (teamId: string, teamName: string) => {
+        if (confirm(`CRITICAL: Are you sure you want to permanently delete team ${teamName}? This wipes all their members and selections.`)) {
+            await supabase.from("team_selections").delete().eq("team_ref_id", teamId);
+            await supabase.from("team_members").delete().eq("team_ref_id", teamId);
+            await supabase.from("activity_logs").delete().eq("team_ref_id", teamId);
+            const { error } = await supabase.from("teams").delete().eq("id", teamId);
+            if (error) alert(error.message);
+            else fetchTeams();
         }
+    };
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!membersData[0].name.trim() || !membersData[1].name.trim()) {
+            alert("Team Lead and Member 2 are strictly required!");
+            return;
+        }
+
+        setActionLoading(true);
+        let currentTeamId = editTeamId;
+
+        try {
+            if (modalMode === "create") {
+                // Check if team_id already exists to prevent duplicate key crashes
+                const { data: existing } = await supabase.from("teams").select("id").eq("team_id", teamData.team_id).maybeSingle();
+                if (existing) throw new Error("A team with this Login ID already exists!");
+
+                const { data, error } = await supabase.from('teams').insert(teamData).select("id").single();
+                if (error) throw error;
+                currentTeamId = data.id;
+            } else {
+                const { error } = await supabase.from('teams').update(teamData).eq('id', currentTeamId);
+                if (error) throw error;
+            }
+
+            // Wipe old members and re-insert new ones (safest way to handle arrays)
+            if (modalMode === "edit") {
+                await supabase.from('team_members').delete().eq('team_ref_id', currentTeamId);
+            }
+
+            // Filter out empty members (Member 3 is optional)
+            const validMembers = membersData
+                .filter(m => m.name.trim() !== "")
+                .map(m => ({ ...m, team_ref_id: currentTeamId }));
+
+            if (validMembers.length > 0) {
+                const { error: memberErr } = await supabase.from('team_members').insert(validMembers);
+                if (memberErr) throw memberErr;
+            }
+
+            setIsModalOpen(false);
+            fetchTeams();
+        } catch (err: any) {
+            alert(`Action failed: ${err.message}`);
+        } finally {
+            setActionLoading(false);
+        }
+    };
+
+    const updateMember = (index: number, field: string, value: string) => {
+        const newM = [...membersData];
+        newM[index] = { ...newM[index], [field]: value };
+        setMembersData(newM);
     };
 
     const filteredTeams = teams.filter(t =>
@@ -99,11 +168,11 @@ export default function AdminTeamsPage() {
     if (loading) return <div className="flex justify-center p-12"><Loader2 className="w-8 h-8 animate-spin text-accent" /></div>;
 
     return (
-        <div className="space-y-6 animate-in fade-in duration-500 pb-12">
+        <div className="space-y-6 animate-in fade-in duration-500 pb-24">
             <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
                 <div>
                     <h2 className="text-3xl font-bold tracking-tight mb-1">Team Management</h2>
-                    <p className="text-muted-foreground">Monitor teams, edit status, and reset selections.</p>
+                    <p className="text-muted-foreground">Comprehensive control over teams, members, credentials, and hacking status.</p>
                 </div>
 
                 <div className="flex flex-col sm:flex-row gap-3 w-full lg:w-auto">
@@ -111,76 +180,82 @@ export default function AdminTeamsPage() {
                         <Search className="w-4 h-4 absolute left-3 top-3.5 text-muted-foreground" />
                         <input
                             type="text"
-                            placeholder="Search..."
+                            placeholder="Search teams..."
                             value={search}
                             onChange={e => setSearch(e.target.value)}
-                            className="w-full pl-9 pr-4 py-2.5 text-sm bg-card border border-border rounded-lg focus:outline-none focus:border-accent"
+                            className="w-full pl-9 pr-4 py-2.5 text-sm bg-card border border-border rounded-lg focus:outline-none focus:border-accent shadow-sm"
                         />
                     </div>
                     <button
-                        onClick={() => setIsAddingTeam(true)}
-                        className="flex items-center justify-center gap-2 px-5 py-2.5 bg-accent text-accent-foreground rounded-lg font-medium text-sm hover:bg-accent/90 shadow-sm shrink-0"
+                        onClick={openCreateModal}
+                        className="flex items-center justify-center gap-2 px-5 py-2.5 bg-accent text-accent-foreground rounded-lg font-medium text-sm hover:bg-accent/90 shadow-sm shrink-0 transition-colors focus:ring-2 focus:ring-accent/50 focus:ring-offset-2"
                     >
                         <Plus className="w-4 h-4" /> Create Team
                     </button>
                 </div>
             </div>
 
-            <div className="bg-card border border-border rounded-xl shadow-sm overflow-hidden">
+            <div className="bg-card border border-border rounded-xl shadow-sm overflow-hidden mix-blend-normal">
                 <div className="overflow-x-auto">
                     <table className="w-full text-sm text-left">
-                        <thead className="bg-muted text-muted-foreground uppercase text-xs font-semibold whitespace-nowrap">
+                        <thead className="bg-muted/70 text-muted-foreground uppercase text-xs font-bold tracking-wider whitespace-nowrap">
                             <tr>
-                                <th className="px-6 py-4">Team ID</th>
-                                <th className="px-6 py-4">Team Name</th>
-                                <th className="px-6 py-4">Selected Problem</th>
-                                <th className="px-6 py-4">Status</th>
-                                <th className="px-6 py-4 text-right">Actions</th>
+                                <th className="px-5 py-4">Credentials</th>
+                                <th className="px-5 py-4">Team Name & Dept</th>
+                                <th className="px-5 py-4">Status</th>
+                                <th className="px-5 py-4 max-w-xs">Selected Problem</th>
+                                <th className="px-5 py-4 text-right">Actions</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-border">
                             {filteredTeams.map((team) => (
-                                <tr key={team.id} className="hover:bg-muted/50 transition-colors">
-                                    <td className="px-6 py-4 font-mono text-xs whitespace-nowrap">{team.team_id}</td>
-                                    <td className="px-6 py-4 font-medium whitespace-nowrap">{team.team_name}</td>
-                                    <td className="px-6 py-4">
-                                        {team.problem_statements ? (
-                                            <span className="text-foreground line-clamp-1 max-w-[200px]" title={team.problem_statements.title}>
-                                                {team.problem_statements.title}
-                                            </span>
-                                        ) : (
-                                            <span className="text-muted-foreground italic">None Base</span>
-                                        )}
+                                <tr key={team.id} className="hover:bg-muted/30 transition-colors group">
+                                    <td className="px-5 py-4 whitespace-nowrap">
+                                        <div className="flex flex-col">
+                                            <span className="font-mono text-xs font-bold bg-muted px-2 py-1 rounded w-max border border-border/50">{team.team_id}</span>
+                                            <span className="text-[11px] text-muted-foreground mt-1 opacity-0 group-hover:opacity-100 transition-opacity">Pass: <span className="font-mono">{team.password}</span></span>
+                                        </div>
                                     </td>
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${getStatusColor(team.status)}`}>
+                                    <td className="px-5 py-4 whitespace-nowrap">
+                                        <div className="font-bold text-[15px]">{team.team_name}</div>
+                                        <div className="text-xs text-muted-foreground mt-0.5">{team.college_name} • {team.department}</div>
+                                    </td>
+                                    <td className="px-5 py-4 whitespace-nowrap">
+                                        <span className={`px-3 py-1.5 rounded-full text-xs font-bold tracking-wide ${getStatusColor(team.status)}`}>
                                             {team.status}
                                         </span>
                                     </td>
-                                    <td className="px-6 py-4 flex items-center justify-end gap-2">
+                                    <td className="px-5 py-4 max-w-xs">
+                                        {team.problem_statements ? (
+                                            <span className="text-foreground line-clamp-2 leading-snug font-medium text-[13px]" title={team.problem_statements.title}>
+                                                {team.problem_statements.title}
+                                            </span>
+                                        ) : (
+                                            <span className="text-muted-foreground italic text-xs">Unassigned</span>
+                                        )}
+                                    </td>
+                                    <td className="px-5 py-4 flex items-center justify-end gap-1.5 opacity-80 group-hover:opacity-100 transition-opacity">
+                                        <button onClick={() => openEditModal(team)} className="p-2 border border-border bg-background hover:bg-accent/10 hover:text-accent hover:border-accent/30 rounded-lg transition-all" title="Edit Full Team Details">
+                                            <Edit2 className="w-4 h-4" />
+                                        </button>
                                         {team.selected_problem_id && (
-                                            <button
-                                                onClick={() => handleResetSelection(team.id, team.team_name)}
-                                                className="p-1.5 text-orange-500 hover:bg-orange-500/10 rounded-md transition-colors"
-                                                title="Reset Problem Selection"
-                                            >
+                                            <button onClick={() => handleResetSelection(team.id, team.team_name)} className="p-2 border border-border bg-background hover:bg-orange-500/10 hover:text-orange-600 hover:border-orange-500/30 rounded-lg transition-all" title="Force Reset Problem Selection">
                                                 <RotateCcw className="w-4 h-4" />
                                             </button>
                                         )}
-                                        <button
-                                            onClick={() => { setEditingTeam(team); setNewStatus(team.status); }}
-                                            className="p-1.5 text-accent hover:bg-accent/10 rounded-md transition-colors"
-                                            title="Edit Stage Status"
-                                        >
-                                            <Edit2 className="w-4 h-4" />
+                                        <button onClick={() => handleDeleteTeam(team.id, team.team_name)} className="p-2 border border-border bg-background hover:bg-red-500/10 hover:text-red-600 hover:border-red-500/30 rounded-lg transition-all" title="Permanently Delete Team">
+                                            <Trash2 className="w-4 h-4" />
                                         </button>
                                     </td>
                                 </tr>
                             ))}
                             {filteredTeams.length === 0 && (
                                 <tr>
-                                    <td colSpan={5} className="px-6 py-12 text-center text-muted-foreground">
-                                        No teams found matching your search. Add a new team to get started.
+                                    <td colSpan={5} className="px-6 py-16 text-center text-muted-foreground">
+                                        <div className="flex flex-col items-center gap-3">
+                                            <UserIcon className="w-8 h-8 opacity-20" />
+                                            <p>No teams found matching your criteria.</p>
+                                        </div>
                                     </td>
                                 </tr>
                             )}
@@ -189,81 +264,135 @@ export default function AdminTeamsPage() {
                 </div>
             </div>
 
-            {editingTeam && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm animate-in fade-in">
-                    <div className="bg-card w-full max-w-sm border border-border rounded-xl shadow-2xl overflow-hidden">
-                        <div className="p-5 border-b border-border">
-                            <h3 className="font-semibold text-lg">Edit Team Status</h3>
-                            <p className="text-sm text-muted-foreground mt-1">Changing status for {editingTeam.team_name}</p>
-                        </div>
-                        <div className="p-5">
-                            <label className="block text-sm font-medium mb-2">Hackathon State</label>
-                            <select
-                                value={newStatus}
-                                onChange={e => setNewStatus(e.target.value)}
-                                className="w-full p-2.5 bg-background border border-border rounded-lg text-sm focus:outline-none focus:border-accent"
-                            >
-                                <option value="Active">Active</option>
-                                <option value="Shortlisted">Shortlisted</option>
-                                <option value="Eliminated">Eliminated</option>
-                                <option value="Frozen">Frozen (Locked)</option>
-                            </select>
+            {/* MASTER CREATE / EDIT MODAL */}
+            {isModalOpen && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-2 sm:p-4 bg-background/80 backdrop-blur-sm animate-in fade-in">
+                    <form onSubmit={handleSubmit} className="bg-card w-full max-w-4xl border border-border rounded-2xl shadow-2xl flex flex-col max-h-[95vh] overflow-hidden">
 
-                            {newStatus === "Eliminated" && (
-                                <div className="mt-4 p-3 bg-red-500/10 border border-red-500/20 text-red-600 text-xs rounded-lg flex gap-2">
-                                    <AlertCircle className="w-4 h-4 shrink-0" />
-                                    <p>They will see an elimination notice on their dashboard.</p>
-                                </div>
-                            )}
-                        </div>
-                        <div className="p-4 bg-muted/50 border-t border-border flex justify-end gap-3">
-                            <button onClick={() => setEditingTeam(null)} className="px-4 py-2 text-sm bg-card border border-border rounded-lg hover:bg-muted">Cancel</button>
-                            <button onClick={handleUpdateStatus} className="px-4 py-2 text-sm bg-accent text-accent-foreground font-medium rounded-lg hover:bg-accent/90 shadow-md">Update Status</button>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {/* CREATE TEAM MODAL */}
-            {isAddingTeam && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm animate-in fade-in">
-                    <form onSubmit={handleCreateTeam} className="bg-card w-full max-w-lg border border-border rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
-                        <div className="p-5 border-b border-border flex justify-between items-center bg-muted/30">
-                            <h3 className="font-semibold text-lg flex items-center gap-2"><Plus className="w-5 h-5 text-accent" /> Create New Team</h3>
-                            <button type="button" onClick={() => setIsAddingTeam(false)} className="text-muted-foreground hover:text-foreground text-2xl leading-none">&times;</button>
-                        </div>
-                        <div className="p-6 overflow-y-auto space-y-4">
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-xs font-semibold text-muted-foreground uppercase mb-1">Team Login ID</label>
-                                    <input required type="text" value={newTeamPayload.team_id} placeholder="TEAM005" onChange={e => setNewTeamPayload({ ...newTeamPayload, team_id: e.target.value })} className="w-full p-2.5 bg-background border border-border rounded-lg text-sm focus:outline-none focus:border-accent" />
-                                </div>
-                                <div>
-                                    <label className="block text-xs font-semibold text-muted-foreground uppercase mb-1">Team Password</label>
-                                    <input required type="text" value={newTeamPayload.password} placeholder="SecurePass!" onChange={e => setNewTeamPayload({ ...newTeamPayload, password: e.target.value })} className="w-full p-2.5 bg-background border border-border rounded-lg text-sm focus:outline-none focus:border-accent" />
-                                </div>
-                            </div>
-
+                        {/* Header */}
+                        <div className="p-4 sm:p-6 border-b border-border flex justify-between items-center bg-muted/20">
                             <div>
-                                <label className="block text-xs font-semibold text-muted-foreground uppercase mb-1">Team Name / Title</label>
-                                <input required type="text" value={newTeamPayload.team_name} placeholder="Quantum Hackers" onChange={e => setNewTeamPayload({ ...newTeamPayload, team_name: e.target.value })} className="w-full p-2.5 bg-background border border-border rounded-lg text-sm focus:outline-none focus:border-accent" />
+                                <h3 className="font-bold text-xl flex items-center gap-2 text-foreground">
+                                    {modalMode === "create" ? <><Plus className="w-5 h-5 text-accent" /> Register New Team</> : <><Edit2 className="w-5 h-5 text-accent" /> Edit Team: {teamData.team_name}</>}
+                                </h3>
+                                <p className="text-xs text-muted-foreground mt-1">Configure credentials, demographics, and roster.</p>
+                            </div>
+                            <button type="button" onClick={() => setIsModalOpen(false)} className="p-2 bg-background hover:bg-destructive/10 hover:text-destructive rounded-full border border-transparent hover:border-destructive/20 transition-all focus:outline-none">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                            </button>
+                        </div>
+
+                        {/* Scrollable Body */}
+                        <div className="p-4 sm:p-6 overflow-y-auto space-y-8 flex-1 bg-muted/5 custom-scrollbar">
+
+                            {/* SECTION 1: Core Controls */}
+                            <div className="space-y-4">
+                                <div className="flex items-center gap-2 border-b border-border pb-2">
+                                    <div className="w-6 h-6 rounded bg-accent/20 text-accent flex items-center justify-center font-bold text-xs">1</div>
+                                    <h4 className="font-semibold uppercase tracking-wider text-sm text-foreground">Team Identity & Access</h4>
+                                </div>
+
+                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                    <div>
+                                        <label className="block text-xs font-bold text-muted-foreground uppercase mb-1.5">Login ID</label>
+                                        <input required type="text" value={teamData.team_id} placeholder="e.g. T-999" onChange={e => setTeamData({ ...teamData, team_id: e.target.value })} className="w-full p-2.5 bg-background border border-border rounded-lg text-sm focus:ring-2 focus:ring-accent" />
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-bold text-muted-foreground uppercase mb-1.5">Password</label>
+                                        <input required type="text" value={teamData.password} placeholder="SecretPass123" onChange={e => setTeamData({ ...teamData, password: e.target.value })} className="w-full p-2.5 bg-background border border-border rounded-lg text-sm focus:ring-2 focus:ring-accent" />
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-bold text-muted-foreground uppercase mb-1.5">Hackathon Status</label>
+                                        <select value={teamData.status} onChange={e => setTeamData({ ...teamData, status: e.target.value })} className="w-full p-2.5 bg-background border border-border rounded-lg text-sm focus:ring-2 focus:ring-accent font-semibold">
+                                            <option value="Active">🟢 Active</option>
+                                            <option value="Shortlisted">🌟 Shortlisted</option>
+                                            <option value="Frozen">⏸️ Frozen (Locked)</option>
+                                            <option value="Eliminated">❌ Eliminated</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-xs font-bold text-muted-foreground uppercase mb-1.5">Public Team Name</label>
+                                        <input required type="text" value={teamData.team_name} placeholder="Neural Hackers" onChange={e => setTeamData({ ...teamData, team_name: e.target.value })} className="w-full p-2.5 bg-background border border-border rounded-lg text-sm focus:ring-2 focus:ring-accent" />
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-3">
+                                        <div>
+                                            <label className="block text-xs font-bold text-muted-foreground uppercase mb-1.5">Department</label>
+                                            <input type="text" value={teamData.department} placeholder="CSE" onChange={e => setTeamData({ ...teamData, department: e.target.value })} className="w-full p-2.5 bg-background border border-border rounded-lg text-sm focus:ring-2 focus:ring-accent" />
+                                        </div>
+                                        <div>
+                                            <label className="block text-xs font-bold text-muted-foreground uppercase mb-1.5">Year</label>
+                                            <select value={teamData.year} onChange={e => setTeamData({ ...teamData, year: e.target.value })} className="w-full p-2.5 bg-background border border-border rounded-lg text-sm focus:ring-2 focus:ring-accent">
+                                                <option>1st Year</option>
+                                                <option>2nd Year</option>
+                                                <option>3rd Year</option>
+                                                <option>4th Year</option>
+                                                <option>Masters</option>
+                                                <option>Other</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label className="block text-xs font-bold text-muted-foreground uppercase mb-1.5">College / Institution</label>
+                                    <input type="text" value={teamData.college_name} placeholder="MIT University" onChange={e => setTeamData({ ...teamData, college_name: e.target.value })} className="w-full p-2.5 bg-background border border-border rounded-lg text-sm focus:ring-2 focus:ring-accent" />
+                                </div>
                             </div>
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-xs font-semibold text-muted-foreground uppercase mb-1">College/Institution</label>
-                                    <input type="text" value={newTeamPayload.college_name} placeholder="Tech University" onChange={e => setNewTeamPayload({ ...newTeamPayload, college_name: e.target.value })} className="w-full p-2.5 bg-background border border-border rounded-lg text-sm focus:outline-none focus:border-accent" />
+                            {/* SECTION 2: Members */}
+                            <div className="space-y-4">
+                                <div className="flex items-center gap-2 border-b border-border pb-2">
+                                    <div className="w-6 h-6 rounded bg-accent/20 text-accent flex items-center justify-center font-bold text-xs">2</div>
+                                    <h4 className="font-semibold uppercase tracking-wider text-sm text-foreground">Team Roster (Max 3)</h4>
                                 </div>
-                                <div>
-                                    <label className="block text-xs font-semibold text-muted-foreground uppercase mb-1">Department</label>
-                                    <input type="text" value={newTeamPayload.department} placeholder="Computer Science" onChange={e => setNewTeamPayload({ ...newTeamPayload, department: e.target.value })} className="w-full p-2.5 bg-background border border-border rounded-lg text-sm focus:outline-none focus:border-accent" />
+
+                                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                                    {membersData.map((member, i) => (
+                                        <div key={i} className={`p-4 rounded-xl border ${i <= 1 ? 'border-border bg-card shadow-sm' : 'border-dashed border-border/60 bg-transparent'}`}>
+                                            <div className="flex justify-between items-center mb-4">
+                                                <h5 className="font-bold text-sm tracking-tight">{member.member_role}</h5>
+                                                <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded-sm bg-muted text-muted-foreground">{i <= 1 ? "Required" : "Optional"}</span>
+                                            </div>
+
+                                            <div className="space-y-3">
+                                                <div>
+                                                    <label className="block text-[11px] font-semibold text-muted-foreground uppercase mb-1">Full Name</label>
+                                                    <input required={i <= 1} type="text" value={member.name} placeholder={i === 0 ? "Jane Doe" : ""} onChange={e => updateMember(i, 'name', e.target.value)} className="w-full p-2 bg-background border border-border rounded-md text-sm focus:ring-1 focus:ring-accent" />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-[11px] font-semibold text-muted-foreground uppercase mb-1">Email</label>
+                                                    <input type="email" value={member.email} placeholder="jane@example.com" onChange={e => updateMember(i, 'email', e.target.value)} className="w-full p-2 bg-background border border-border rounded-md text-sm focus:ring-1 focus:ring-accent" />
+                                                </div>
+                                                <div className="grid grid-cols-2 gap-2">
+                                                    <div>
+                                                        <label className="block text-[11px] font-semibold text-muted-foreground uppercase mb-1">Phone</label>
+                                                        <input type="text" value={member.phone} placeholder="555-0192" onChange={e => updateMember(i, 'phone', e.target.value)} className="w-full p-2 bg-background border border-border rounded-md text-sm focus:ring-1 focus:ring-accent" />
+                                                    </div>
+                                                    <div>
+                                                        <label className="block text-[11px] font-semibold text-muted-foreground uppercase mb-1">Gender</label>
+                                                        <select value={member.gender} onChange={e => updateMember(i, 'gender', e.target.value)} className="w-full p-2 bg-background border border-border rounded-md text-xs focus:ring-1 focus:ring-accent">
+                                                            <option>Male</option>
+                                                            <option>Female</option>
+                                                            <option>Other</option>
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
                                 </div>
                             </div>
+
                         </div>
-                        <div className="p-5 bg-muted/50 border-t border-border flex justify-end gap-3 shrink-0">
-                            <button type="button" onClick={() => setIsAddingTeam(false)} className="px-5 py-2.5 text-sm bg-card border border-border rounded-xl hover:bg-muted font-medium transition-colors">Cancel</button>
-                            <button type="submit" disabled={addLoading} className="px-5 py-2.5 text-sm bg-accent text-accent-foreground font-semibold rounded-xl hover:bg-accent/90 shadow-md shadow-accent/20 transition-all flex items-center gap-2">
-                                {addLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Save & Create Team"}
+
+                        {/* Footer */}
+                        <div className="p-4 sm:p-5 bg-card border-t border-border flex justify-end gap-3 shrink-0">
+                            <button type="button" onClick={() => setIsModalOpen(false)} className="px-6 py-2.5 text-sm bg-muted border border-border rounded-xl hover:bg-muted/80 font-medium transition-colors">Cancel</button>
+                            <button type="submit" disabled={actionLoading} className="px-8 py-2.5 text-sm bg-accent text-accent-foreground font-semibold rounded-xl hover:bg-accent/90 shadow-md shadow-accent/20 transition-all flex items-center gap-2">
+                                {actionLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Save className="w-4 h-4" /> {modalMode === "create" ? "Register Team" : "Save Changes"}</>}
                             </button>
                         </div>
                     </form>
