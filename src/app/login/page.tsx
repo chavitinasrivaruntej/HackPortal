@@ -126,8 +126,15 @@ export default function LoginPage() {
                                 <p className="text-emerald-300 font-bold">&gt; Identity verified: {loginSuccess.name}</p>
                             </div>
                         </div>
-                        <div className="w-full bg-emerald-950/50 rounded-full h-1 mt-6 overflow-hidden border border-emerald-500/10">
-                            <div className="bg-emerald-500 h-full animate-[progress_3s_ease-in-out_forwards] shadow-[0_0_10px_#00bc7d]"></div>
+                        <div className="w-full bg-emerald-950/50 rounded-full h-1 mt-6 overflow-hidden border border-emerald-500/10 relative">
+                            <div className="h-full bg-emerald-500 shadow-[0_0_10px_#00bc7d] rounded-full" style={{ animation: 'terminalProgress 3s ease-in-out forwards' }}>
+                                <style>{`
+                                    @keyframes terminalProgress {
+                                        0% { width: 0%; }
+                                        100% { width: 100%; }
+                                    }
+                                `}</style>
+                            </div>
                         </div>
                         <p className="text-center text-[10px] text-emerald-500/50 mt-3 uppercase tracking-widest animate-pulse">Initializing Portal Environments</p>
                     </div>
