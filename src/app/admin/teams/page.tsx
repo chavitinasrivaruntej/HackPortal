@@ -16,7 +16,7 @@ export default function AdminTeamsPage() {
     const [actionLoading, setActionLoading] = useState(false);
 
     // Form State
-    const defaultTeam = { team_id: "", password: "", team_name: "", college_name: "", department: "", year: "1st Year", status: "Active" };
+    const defaultTeam = { team_id: "", password: "", team_name: "", college_name: "", status: "Active" };
     const defaultMembers = [
         { member_role: "Team Lead", name: "", email: "", phone: "", gender: "Male" },
         { member_role: "Member 2", name: "", email: "", phone: "", gender: "Male" },
@@ -57,8 +57,6 @@ export default function AdminTeamsPage() {
             password: team.password,
             team_name: team.team_name,
             college_name: team.college_name || "",
-            department: team.department || "",
-            year: team.year || "1st Year",
             status: team.status
         });
 
@@ -201,7 +199,7 @@ export default function AdminTeamsPage() {
                         <thead className="bg-muted/70 text-muted-foreground uppercase text-xs font-bold tracking-wider whitespace-nowrap">
                             <tr>
                                 <th className="px-5 py-4">Credentials</th>
-                                <th className="px-5 py-4">Team Name & Dept</th>
+                                <th className="px-5 py-4">Team Name & College</th>
                                 <th className="px-5 py-4">Status</th>
                                 <th className="px-5 py-4 max-w-xs">Selected Problem</th>
                                 <th className="px-5 py-4 text-right">Actions</th>
@@ -218,7 +216,7 @@ export default function AdminTeamsPage() {
                                     </td>
                                     <td className="px-5 py-4 whitespace-nowrap">
                                         <div className="font-bold text-[15px]">{team.team_name}</div>
-                                        <div className="text-xs text-muted-foreground mt-0.5">{team.college_name} • {team.department}</div>
+                                        <div className="text-xs text-muted-foreground mt-0.5">{team.college_name}</div>
                                     </td>
                                     <td className="px-5 py-4 whitespace-nowrap">
                                         <span className={`px-3 py-1.5 rounded-full text-xs font-bold tracking-wide ${getStatusColor(team.status)}`}>
@@ -317,23 +315,7 @@ export default function AdminTeamsPage() {
                                         <label className="block text-xs font-bold text-muted-foreground uppercase mb-1.5">Public Team Name</label>
                                         <input required type="text" value={teamData.team_name} placeholder="Neural Hackers" onChange={e => setTeamData({ ...teamData, team_name: e.target.value })} className="w-full p-2.5 bg-background border border-border rounded-lg text-sm focus:ring-2 focus:ring-accent" />
                                     </div>
-                                    <div className="grid grid-cols-2 gap-3">
-                                        <div>
-                                            <label className="block text-xs font-bold text-muted-foreground uppercase mb-1.5">Department</label>
-                                            <input type="text" value={teamData.department} placeholder="CSE" onChange={e => setTeamData({ ...teamData, department: e.target.value })} className="w-full p-2.5 bg-background border border-border rounded-lg text-sm focus:ring-2 focus:ring-accent" />
-                                        </div>
-                                        <div>
-                                            <label className="block text-xs font-bold text-muted-foreground uppercase mb-1.5">Year</label>
-                                            <select value={teamData.year} onChange={e => setTeamData({ ...teamData, year: e.target.value })} className="w-full p-2.5 bg-background border border-border rounded-lg text-sm focus:ring-2 focus:ring-accent">
-                                                <option>1st Year</option>
-                                                <option>2nd Year</option>
-                                                <option>3rd Year</option>
-                                                <option>4th Year</option>
-                                                <option>Masters</option>
-                                                <option>Other</option>
-                                            </select>
-                                        </div>
-                                    </div>
+
                                 </div>
 
                                 <div>

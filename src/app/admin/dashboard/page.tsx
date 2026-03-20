@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
-import { Loader2, Users, FileText, CheckCircle2, Clock, UserX, AlertTriangle, Send, Target, Paperclip, ExternalLink, MessageSquare } from "lucide-react";
+import { Loader2, Users, FileText, CheckCircle2, Clock, UserX, AlertTriangle, AlertCircle, Send, Target, Paperclip, MessageSquare, Trash2 } from "lucide-react";
 
 export default function AdminDashboard() {
     const [stats, setStats] = useState<any>(null);
@@ -17,21 +17,19 @@ export default function AdminDashboard() {
 
     // Modal states
     const [selectedStat, setSelectedStat] = useState<{ title: string; filterKey: string | null; val: string | null } | null>(null);
+    const [deleteAnnId, setDeleteAnnId] = useState<string | null>(null);
+    const [deleting, setDeleting] = useState(false);
 
     const fetchData = async () => {
         try {
-            // Teams with problems
             const { data: teamsData } = await supabase.from('teams').select('*, problem_statements(title)');
             if (teamsData) setAllTeams(teamsData);
 
-            // Problem Statements count
             const { count: psCount } = await supabase.from('problem_statements').select('*', { count: 'exact', head: true });
 
-            // Past Announcements
             const { data: annData } = await supabase.from('announcements').select('*').order('created_at', { ascending: false });
             if (annData) setAnnouncements(annData);
 
-            // Computing stats based on raw teams data instead of multiple queries
             const selected = teamsData?.filter(t => t.selected_problem_id) || [];
             const eliminated = teamsData?.filter(t => t.status === 'Eliminated') || [];
             const frozen = teamsData?.filter(t => t.status === 'Frozen') || [];
@@ -58,10 +56,12 @@ export default function AdminDashboard() {
     useEffect(() => {
         fetchData();
 
-        // Listen to new announcements for instant history update
-        const channel = supabase.channel('admin_announcements')
+        const channel = supabase.channel('admin_announcements_db')
             .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'announcements' }, (payload) => {
                 setAnnouncements(prev => [payload.new, ...prev]);
+            })
+            .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'announcements' }, (payload) => {
+                setAnnouncements(prev => prev.filter(a => a.id !== payload.old.id));
             })
             .subscribe();
 
@@ -72,7 +72,6 @@ export default function AdminDashboard() {
         if (!announcementMsg.trim()) return;
         setAnnouncing(true);
 
-        // Pack attachment URL directly into the message string if exists (safe way without DB schema updates)
         let finalMessage = announcementMsg.trim();
         if (attachmentUrl.trim()) {
             finalMessage = `${finalMessage}|||ATTACHMENT:${attachmentUrl.trim()}`;
@@ -82,10 +81,19 @@ export default function AdminDashboard() {
         setAnnouncementMsg("");
         setAttachmentUrl("");
         setAnnouncing(false);
-        alert("Announcement broadcasted globally!");
     };
 
-    // Helper to extract message and link
+    const confirmDeleteAnnouncement = async () => {
+        if (!deleteAnnId) return;
+        setDeleting(true);
+        const { error } = await supabase.from("announcements").delete().eq("id", deleteAnnId);
+        if (!error) {
+            setAnnouncements(prev => prev.filter(a => a.id !== deleteAnnId)); // Optimistic UI update
+        }
+        setDeleting(false);
+        setDeleteAnnId(null);
+    };
+
     const parseMessage = (msg: string) => {
         const parts = msg.split('|||ATTACHMENT:');
         return { text: parts[0], url: parts[1] || null };
@@ -93,7 +101,6 @@ export default function AdminDashboard() {
 
     if (loading) return <div className="flex justify-center p-12"><Loader2 className="w-8 h-8 animate-spin text-accent" /></div>;
 
-    // Determine which teams to show in stat modal
     let modalTeams = [];
     if (selectedStat?.filterKey === "status") {
         modalTeams = allTeams.filter(t => t.status === selectedStat.val);
@@ -106,38 +113,35 @@ export default function AdminDashboard() {
     const StatCard = ({ title, value, icon: Icon, color, filterKey, val }: any) => (
         <div
             onClick={() => setSelectedStat({ title, filterKey, val })}
-            className="bg-card border border-border rounded-2xl p-5 shadow-sm flex items-center gap-4 cursor-pointer hover:border-accent hover:shadow-md transition-all group"
+            className="bg-card border border-border rounded-2xl p-5 shadow-sm flex items-center gap-4 cursor-pointer hover:border-accent hover:shadow-md transition-all group relative overflow-hidden"
         >
             <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${color} group-hover:scale-110 transition-transform`}>
                 <Icon className="w-6 h-6" />
             </div>
             <div>
                 <p className="text-sm text-muted-foreground font-medium mb-1">{title}</p>
-                <p className="text-2xl font-bold">{value}</p>
+                <p className="text-2xl font-bold tracking-tight">{value}</p>
             </div>
         </div>
     );
 
     return (
         <div className="space-y-8 animate-in slide-in-from-bottom-4 duration-500 pb-12">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center">
-                <div>
-                    <h2 className="text-3xl font-bold tracking-tight">Overview Dashboard</h2>
-                    <p className="text-muted-foreground mt-1">Click any statistic card to view the associated teams.</p>
-                </div>
+            <div>
+                <h2 className="text-3xl font-bold tracking-tight">Overview Dashboard</h2>
+                <p className="text-muted-foreground mt-1 text-sm">Monitor overall operations, team behaviors, and send crucial global notifications instantly.</p>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 <StatCard title="Total Teams" value={stats?.totalTeams} icon={Users} color="bg-blue-500/10 text-blue-500" filterKey="all" val={null} />
 
-                {/* Problem Statements stat does not filter teams directly */}
                 <div className="bg-card border border-border rounded-2xl p-5 shadow-sm flex items-center gap-4">
                     <div className="w-12 h-12 rounded-xl flex items-center justify-center bg-purple-500/10 text-purple-500">
                         <FileText className="w-6 h-6" />
                     </div>
                     <div>
                         <p className="text-sm text-muted-foreground font-medium mb-1">Problem Statements</p>
-                        <p className="text-2xl font-bold">{stats?.totalPS}</p>
+                        <p className="text-2xl font-bold tracking-tight">{stats?.totalPS}</p>
                     </div>
                 </div>
 
@@ -148,80 +152,135 @@ export default function AdminDashboard() {
                 <StatCard title="Frozen" value={stats?.frozen} icon={AlertTriangle} color="bg-yellow-500/10 text-yellow-600 dark:text-yellow-500" filterKey="status" val="Frozen" />
             </div>
 
-            {/* Broadcast Form */}
-            <div className="bg-card border border-border rounded-2xl p-6 shadow-sm">
-                <div className="flex items-center gap-2 mb-4">
-                    <div className="p-2 bg-violet-500/10 rounded-lg text-violet-500"><Send className="w-5 h-5" /></div>
-                    <h3 className="text-xl font-bold text-foreground">Broadcast Global Announcement</h3>
-                </div>
-                <p className="text-sm text-muted-foreground mb-6">Send an immediate, high-priority violet banner to all participant screens universally.</p>
+            {/* UPGRADED ANNOUNCEMENTS SECTION */}
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
 
-                <div className="flex flex-col gap-4">
-                    <textarea
-                        value={announcementMsg}
-                        onChange={(e) => setAnnouncementMsg(e.target.value)}
-                        placeholder="Type your important announcement here (e.g. 'Lunch is now being served in the main hall!')..."
-                        className="w-full px-4 py-3 bg-background border border-border rounded-lg text-sm focus:outline-none focus:border-violet-500 transition-colors resize-none h-24"
-                    />
+                {/* Broadcast Form Panel */}
+                <div className="bg-card border border-border rounded-2xl p-6 sm:p-8 shadow-sm h-fit">
+                    <div className="flex items-center gap-3 mb-6">
+                        <div className="p-2.5 bg-violet-500/10 rounded-xl text-violet-500">
+                            <Send className="w-6 h-6" />
+                        </div>
+                        <div>
+                            <h3 className="text-xl font-bold text-foreground tracking-tight">Broadcast Center</h3>
+                            <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider mt-1">Global Real-time Delivery</p>
+                        </div>
+                    </div>
 
-                    <div className="flex flex-col sm:flex-row gap-3 items-center">
-                        <div className="relative flex-1 w-full">
-                            <Paperclip className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
-                            <input
-                                type="url"
-                                value={attachmentUrl}
-                                onChange={(e) => setAttachmentUrl(e.target.value)}
-                                placeholder="Optional: Attach Link (Google Drive, Docs, Image URL)"
-                                className="w-full pl-9 pr-4 py-2.5 bg-background border border-border rounded-lg text-sm focus:outline-none focus:border-violet-500 transition-colors"
+                    <div className="flex flex-col gap-5">
+                        <div className="relative">
+                            <textarea
+                                value={announcementMsg}
+                                onChange={(e) => setAnnouncementMsg(e.target.value)}
+                                placeholder="Type the announcement to be pushed globally..."
+                                className="w-full px-5 py-4 bg-muted/40 border border-border rounded-xl text-sm focus:outline-none focus:border-violet-500 transition-colors resize-none h-32 leading-relaxed"
                             />
                         </div>
-                        <button
-                            onClick={handleSendAnnouncement}
-                            disabled={announcing || !announcementMsg.trim()}
-                            className="w-full sm:w-auto px-8 py-2.5 bg-violet-600 hover:bg-violet-700 text-white font-medium rounded-lg shadow-md shadow-violet-500/20 disabled:opacity-70 flex items-center justify-center gap-2 shrink-0 transition-all focus:ring-4 focus:ring-violet-500/30"
-                        >
-                            {announcing ? <Loader2 className="w-4 h-4 animate-spin" /> : "Broadcast Now"}
-                        </button>
+
+                        <div className="flex flex-col sm:flex-row gap-4 items-center">
+                            <div className="relative flex-1 w-full group">
+                                <Paperclip className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-violet-500 transition-colors" />
+                                <input
+                                    type="url"
+                                    value={attachmentUrl}
+                                    onChange={(e) => setAttachmentUrl(e.target.value)}
+                                    placeholder="Optional Resource Link (e.g. Schedule PDF, Code Sandbox)"
+                                    className="w-full pl-11 pr-4 py-3 bg-muted/20 border border-border rounded-xl text-sm focus:outline-none focus:border-violet-500 transition-colors"
+                                />
+                            </div>
+                            <button
+                                onClick={handleSendAnnouncement}
+                                disabled={announcing || !announcementMsg.trim()}
+                                className="w-full sm:w-auto px-10 py-3 bg-violet-600 hover:bg-violet-700 text-white font-semibold rounded-xl shadow-[0_0_20px_rgba(139,92,246,0.25)] disabled:opacity-50 disabled:shadow-none flex items-center justify-center gap-2 shrink-0 transition-all focus:ring-4 focus:ring-violet-500/30"
+                            >
+                                {announcing ? <Loader2 className="w-5 h-5 animate-spin" /> : "Deploy Broadcast"}
+                            </button>
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            {/* Announcement History Table */}
-            <div className="bg-card border border-border rounded-2xl shadow-sm overflow-hidden">
-                <div className="p-6 border-b border-border flex items-center gap-3">
-                    <div className="w-8 h-8 bg-muted rounded-full flex items-center justify-center"><MessageSquare className="w-4 h-4 text-muted-foreground" /></div>
-                    <h3 className="text-lg font-bold text-foreground">Announcement History</h3>
-                </div>
-                <div className="max-h-96 overflow-y-auto">
-                    {announcements.length === 0 ? (
-                        <div className="p-12 text-center text-muted-foreground text-sm">No announcements have been sent yet.</div>
-                    ) : (
-                        <ul className="divide-y divide-border">
-                            {announcements.map((ann) => {
-                                const { text, url } = parseMessage(ann.message);
-                                return (
-                                    <li key={ann.id} className="p-5 hover:bg-muted/30 transition-colors">
-                                        <div className="flex justify-between items-start gap-4">
-                                            <div>
-                                                <p className="text-sm font-medium text-foreground">{text}</p>
+                {/* Sent Announcements History Panel with Delete Control */}
+                <div className="bg-card border border-border rounded-2xl shadow-sm flex flex-col h-[500px] overflow-hidden">
+                    <div className="p-6 border-b border-border flex items-center justify-between bg-muted/10">
+                        <div className="flex items-center gap-3">
+                            <div className="w-9 h-9 bg-muted rounded-full flex items-center justify-center border border-border/50">
+                                <MessageSquare className="w-4 h-4 text-foreground/70" />
+                            </div>
+                            <h3 className="text-lg font-bold text-foreground">Active History</h3>
+                        </div>
+                        <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground bg-muted px-2 py-1 rounded">
+                            {announcements.length} Sent
+                        </span>
+                    </div>
+
+                    <div className="flex-1 overflow-y-auto p-2 bg-muted/5 custom-scrollbar">
+                        {announcements.length === 0 ? (
+                            <div className="h-full flex flex-col items-center justify-center text-center opacity-60">
+                                <AlertCircle className="w-10 h-10 mb-3 text-muted-foreground" />
+                                <p className="font-medium text-foreground text-sm">No Active Announcements</p>
+                                <p className="text-xs text-muted-foreground">Broadcasted messages will appear here and can be deleted to instantly remove them from participant screens.</p>
+                            </div>
+                        ) : (
+                            <ul className="space-y-2 p-2">
+                                {announcements.map((ann) => {
+                                    const { text, url } = parseMessage(ann.message);
+                                    return (
+                                        <li key={ann.id} className="bg-card border border-border p-5 rounded-xl hover:shadow-md hover:border-violet-500/30 transition-all group flex flex-col sm:flex-row justify-between items-start gap-4">
+                                            <div className="flex-1 pr-4">
+                                                <p className="text-sm font-medium text-foreground leading-relaxed whitespace-pre-wrap">{text}</p>
                                                 {url && (
-                                                    <a href={url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 mt-2 text-xs font-semibold text-violet-500 hover:text-violet-600 hover:underline bg-violet-500/10 px-2.5 py-1 rounded-md">
-                                                        <Paperclip className="w-3 h-3" /> Attached Document
+                                                    <a href={url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 mt-3 text-xs font-bold text-violet-500 hover:text-violet-600 hover:underline bg-violet-500/10 px-3 py-1.5 rounded-lg border border-violet-500/20">
+                                                        <Paperclip className="w-3.5 h-3.5" /> Attached Link
                                                     </a>
                                                 )}
+                                                <div className="flex items-center gap-2 mt-4 text-[10px] uppercase font-bold tracking-wider text-muted-foreground">
+                                                    <span>{new Date(ann.created_at).toLocaleDateString()}</span>
+                                                    <span className="w-1 h-1 rounded-full bg-border"></span>
+                                                    <span>{new Date(ann.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                                                </div>
                                             </div>
-                                            <div className="text-right shrink-0">
-                                                <span className="text-xs text-muted-foreground tracking-tight block">{new Date(ann.created_at).toLocaleDateString()}</span>
-                                                <span className="text-xs text-muted-foreground tracking-tight block">{new Date(ann.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-                                            </div>
-                                        </div>
-                                    </li>
-                                )
-                            })}
-                        </ul>
-                    )}
+
+                                            {/* Delete Action Button */}
+                                            <button
+                                                onClick={() => setDeleteAnnId(ann.id)}
+                                                className="shrink-0 p-2 text-muted-foreground hover:bg-destructive/10 hover:text-destructive hover:border-destructive/30 border border-transparent rounded-xl transition-all shadow-sm"
+                                                title="Delete Announcement Permanently"
+                                            >
+                                                <Trash2 className="w-4 h-4" />
+                                            </button>
+                                        </li>
+                                    )
+                                })}
+                            </ul>
+                        )}
+                    </div>
                 </div>
+
             </div>
+
+            {/* DELETE CONFIRMATION MODAL */}
+            {deleteAnnId && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm animate-in fade-in">
+                    <div className="bg-card w-full max-w-sm border border-border rounded-3xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
+                        <div className="p-6 text-center">
+                            <div className="w-16 h-16 bg-red-500/10 text-red-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <AlertTriangle className="w-8 h-8" />
+                            </div>
+                            <h3 className="font-bold text-xl mb-2 text-foreground">Delete Announcement?</h3>
+                            <p className="text-sm text-muted-foreground mb-6">Are you sure you want to delete this announcement? It will magically disappear from all participant devices globally in real-time.</p>
+
+                            <div className="grid grid-cols-2 gap-3">
+                                <button type="button" onClick={() => setDeleteAnnId(null)} className="py-2.5 text-sm bg-muted border border-border rounded-xl hover:bg-muted/80 font-bold transition-colors">
+                                    Cancel
+                                </button>
+                                <button type="button" onClick={confirmDeleteAnnouncement} disabled={deleting} className="py-2.5 text-sm bg-red-500 hover:bg-red-600 text-white font-bold rounded-xl shadow-md shadow-red-500/20 transition-all flex items-center justify-center gap-2">
+                                    {deleting ? <Loader2 className="w-4 h-4 animate-spin" /> : "Yes, Delete"}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* CLICKED STAT FILTER MODAL (Shows actual filtered teams) */}
             {selectedStat && (
@@ -256,9 +315,9 @@ export default function AdminDashboard() {
                                                 <td className="px-6 py-4 font-bold">{team.team_name}</td>
                                                 <td className="px-6 py-4">
                                                     <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${team.status === 'Eliminated' ? 'bg-red-500/10 text-red-500' :
-                                                            team.status === 'Frozen' ? 'bg-yellow-500/10 text-yellow-600 dark:text-yellow-500' :
-                                                                team.status === 'Shortlisted' ? 'bg-teal-500/10 text-teal-500' :
-                                                                    'bg-blue-500/10 text-blue-500'
+                                                        team.status === 'Frozen' ? 'bg-yellow-500/10 text-yellow-600 dark:text-yellow-500' :
+                                                            team.status === 'Shortlisted' ? 'bg-teal-500/10 text-teal-500' :
+                                                                'bg-blue-500/10 text-blue-500'
                                                         }`}>
                                                         {team.status}
                                                     </span>
