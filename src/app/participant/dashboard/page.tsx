@@ -3,9 +3,10 @@
 import { useEffect, useState } from "react";
 import { useAuthStore } from "@/store/useAuthStore";
 import { supabase } from "@/lib/supabase";
-import { FileText, CheckCircle2, Trophy, Users, Link as LinkIcon, Megaphone, Paperclip, X, UploadCloud, ChevronRight, Loader2 } from "lucide-react";
+import { FileText, CheckCircle2, Trophy, Users, Link as LinkIcon, Megaphone, Paperclip, X, UploadCloud, ChevronRight, Loader2, Shield, Zap } from "lucide-react";
 import Link from "next/link";
 import { useIssuesStore, IssuePriority } from "@/store/useIssuesStore";
+import { useSettingsStore } from "@/store/useSettingsStore";
 
 const parseMsg = (msg: string) => {
     const parts = msg.split('|||ATTACHMENT:');
@@ -30,10 +31,13 @@ export default function ParticipantDashboard() {
     const addIssue = useIssuesStore((state) => state.addIssue);
     const fetchIssues = useIssuesStore((state) => state.fetchIssues);
     const allIssues = useIssuesStore((state) => state.issues);
+    const currentRound = useSettingsStore((state) => state.currentRound);
+    const fetchSettings = useSettingsStore((state) => state.fetchSettings);
     
     useEffect(() => {
         fetchIssues();
-    }, [fetchIssues]);
+        fetchSettings();
+    }, [fetchIssues, fetchSettings]);
     const userIssues = allIssues.filter(i => i.teamId === user?.display_id);
 
     const handleReportIssue = async (e: React.FormEvent) => {
@@ -124,8 +128,8 @@ export default function ParticipantDashboard() {
 
     const getStatusInfo = () => {
         switch (user?.status) {
-            case "Shortlisted": return { text: "Shortlisted", color: "text-green-500", dot: "bg-green-500", badge: "bg-green-500/10 text-green-500", msg: "Congratulations! Your team advanced." };
-            case "Eliminated": return { text: "Eliminated", color: "text-destructive", dot: "bg-destructive", badge: "bg-destructive/10 text-destructive", msg: "Thank you for participating." };
+            case "Shortlisted": return { text: "Shortlisted", color: "text-yellow-400", dot: "bg-yellow-400", badge: "bg-yellow-400/10 text-yellow-400", msg: "Your team has been shortlisted!" };
+            case "Eliminated": return { text: "Eliminated", color: "text-red-500", dot: "bg-red-500", badge: "bg-red-500/10 text-red-500", msg: "Thank you for participating." };
             case "Frozen": return { text: "Frozen", color: "text-orange-500", dot: "bg-orange-500", badge: "bg-orange-500/10 text-orange-500", msg: "Account locked by Admin." };
             default: return { text: "Active", color: "text-emerald-500", dot: "bg-emerald-500", badge: "bg-emerald-500/10 text-emerald-500", msg: "Competition is ongoing." };
         }
@@ -162,13 +166,22 @@ export default function ParticipantDashboard() {
                                 </div>
                             </div>
 
-                            <div className="bg-black/30 rounded-2xl border border-white/5 backdrop-blur-sm p-5 w-full max-w-md space-y-3">
-                                <p className="text-emerald-500/60 text-[10px] font-mono uppercase tracking-widest">Competition Status</p>
-                                <div className="flex items-center gap-3">
-                                    <div className={`w-3 h-3 rounded-full shrink-0 animate-pulse ${statusInfo.dot}`} />
-                                    <span className={`text-xl font-black tracking-wide uppercase ${statusInfo.color}`}>{statusInfo.text}</span>
+                            <div className="grid grid-cols-2 gap-3 w-full max-w-md">
+                                {/* Round Box */}
+                                <div className="bg-black/30 rounded-2xl border border-emerald-500/20 backdrop-blur-sm p-4 space-y-2">
+                                    <p className="text-emerald-500/60 text-[10px] font-mono uppercase tracking-widest flex items-center gap-1.5"><Zap className="w-3 h-3" />Current Round</p>
+                                    <p className="text-emerald-400 text-lg font-black uppercase tracking-wide">{currentRound}</p>
+                                    <p className="text-white/30 text-[10px] font-mono">Admin controlled</p>
                                 </div>
-                                <p className="text-white/50 text-xs font-mono leading-relaxed border-t border-white/5 pt-3">{statusInfo.msg}</p>
+                                {/* Team Status Box */}
+                                <div className="bg-black/30 rounded-2xl border border-white/5 backdrop-blur-sm p-4 space-y-2">
+                                    <p className="text-white/40 text-[10px] font-mono uppercase tracking-widest flex items-center gap-1.5"><Shield className="w-3 h-3" />Team Status</p>
+                                    <div className="flex items-center gap-2">
+                                        <div className={`w-2.5 h-2.5 rounded-full shrink-0 animate-pulse ${statusInfo.dot}`} />
+                                        <span className={`text-base font-black uppercase tracking-wide ${statusInfo.color}`}>{statusInfo.text}</span>
+                                    </div>
+                                    <p className="text-white/30 text-[10px] font-mono leading-relaxed">{statusInfo.msg}</p>
+                                </div>
                             </div>
                         </div>
 

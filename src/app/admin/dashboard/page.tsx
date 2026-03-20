@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
-import { Loader2, Users, FileText, CheckCircle2, Clock, UserX, AlertTriangle, Send, Target, Paperclip, ExternalLink, MessageSquare, Trash2, ListTree, Activity } from "lucide-react";
+import { Loader2, Users, FileText, CheckCircle2, Clock, UserX, AlertTriangle, Send, Target, Paperclip, ExternalLink, MessageSquare, Trash2, ListTree, Activity, Zap } from "lucide-react";
 import { useIssuesStore } from "@/store/useIssuesStore";
+import { useSettingsStore } from "@/store/useSettingsStore";
 
 export default function AdminDashboard() {
     const [stats, setStats] = useState<any>(null);
@@ -12,10 +13,16 @@ export default function AdminDashboard() {
 
     const issues = useIssuesStore((state) => state.issues);
     const fetchIssues = useIssuesStore((state) => state.fetchIssues);
+    const currentRound = useSettingsStore((state) => state.currentRound);
+    const fetchSettings = useSettingsStore((state) => state.fetchSettings);
+    const updateRound = useSettingsStore((state) => state.updateRound);
+    const [roundUpdating, setRoundUpdating] = useState(false);
+    const [roundInput, setRoundInput] = useState("");
 
     useEffect(() => {
         fetchIssues();
-    }, [fetchIssues]);
+        fetchSettings();
+    }, [fetchIssues, fetchSettings]);
     const totalIssues = issues.length;
     const openIssues = issues.filter(i => i.status === "Open" || i.status === "In Progress").length;
     const resolvedIssues = issues.filter(i => i.status === "Resolved" || i.status === "Closed").length;
@@ -161,6 +168,31 @@ export default function AdminDashboard() {
                 <div>
                     <h2 className="text-3xl font-bold tracking-tight">Overview Dashboard</h2>
                     <p className="text-muted-foreground mt-1">Click any statistic card to view the associated teams.</p>
+                </div>
+            </div>
+
+            {/* Round Control */}
+            <div className="bg-card border border-border rounded-2xl p-6 shadow-sm">
+                <div className="flex items-center gap-2 mb-1">
+                    <div className="p-2 bg-emerald-500/10 rounded-lg text-emerald-500"><Zap className="w-5 h-5" /></div>
+                    <h3 className="text-xl font-bold text-foreground">Competition Round Control</h3>
+                </div>
+                <p className="text-sm text-muted-foreground mb-5 ml-11">Currently showing <span className="font-bold text-emerald-500">{currentRound}</span> to all participants.</p>
+                <div className="flex flex-wrap gap-2">
+                    {["Round 1", "Round 2", "Round 3", "Finals", "Completed"].map((round) => (
+                        <button
+                            key={round}
+                            onClick={async () => { setRoundUpdating(true); await updateRound(round); setRoundUpdating(false); }}
+                            disabled={roundUpdating}
+                            className={`px-5 py-2 rounded-xl font-semibold text-sm border transition-all ${
+                                currentRound === round
+                                    ? "bg-emerald-600 border-emerald-600 text-white shadow-md shadow-emerald-500/20"
+                                    : "bg-background border-border hover:border-emerald-500 hover:text-emerald-500"
+                            }`}
+                        >
+                            {roundUpdating && currentRound !== round ? round : round}
+                        </button>
+                    ))}
                 </div>
             </div>
 
