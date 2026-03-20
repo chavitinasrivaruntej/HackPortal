@@ -23,7 +23,7 @@ export default function AdminDashboard() {
     // UI states
     const [loading, setLoading] = useState(true);
     const [announcementMsg, setAnnouncementMsg] = useState("");
-    const [attachmentUrl, setAttachmentUrl] = useState("");
+    const [announcementAttachment, setAnnouncementAttachment] = useState<File | null>(null);
     const [announcing, setAnnouncing] = useState(false);
 
     // Modal states
@@ -84,18 +84,35 @@ export default function AdminDashboard() {
     }, []);
 
     const handleSendAnnouncement = async () => {
-        if (!announcementMsg.trim()) return;
+        if (!announcementMsg.trim() && !announcementAttachment) return;
         setAnnouncing(true);
 
         let finalMessage = announcementMsg.trim();
-        if (attachmentUrl.trim()) {
-            finalMessage = `${finalMessage}|||ATTACHMENT:${attachmentUrl.trim()}`;
-        }
 
-        await supabase.from("announcements").insert({ message: finalMessage });
-        setAnnouncementMsg("");
-        setAttachmentUrl("");
-        setAnnouncing(false);
+        try {
+            if (announcementAttachment) {
+                const fileExt = announcementAttachment.name.split('.').pop();
+                const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+                const { data, error } = await supabase.storage.from('announcement-attachments').upload(`public/${fileName}`, announcementAttachment);
+                
+                if (data) {
+                    const { data: publicUrlData } = supabase.storage.from('announcement-attachments').getPublicUrl(`public/${fileName}`);
+                    finalMessage = `${finalMessage}|||ATTACHMENT:${publicUrlData.publicUrl}`;
+                }
+            }
+
+            if (finalMessage) {
+                await supabase.from("announcements").insert({ message: finalMessage });
+            }
+            
+            setAnnouncementMsg("");
+            setAnnouncementAttachment(null);
+        } catch (err) {
+            console.error("Failed to broadcast:", err);
+            alert("Failed to send broadcast");
+        } finally {
+            setAnnouncing(false);
+        }
     };
 
     const handleDeleteAnnouncement = async () => {
@@ -221,15 +238,18 @@ export default function AdminDashboard() {
                     />
 
                     <div className="flex flex-col sm:flex-row gap-3 items-center">
-                        <div className="relative flex-1 w-full">
-                            <Paperclip className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
+                        <div className="relative flex-1 w-full border border-border rounded-lg bg-background hover:bg-muted/30 transition-colors overflow-hidden flex items-center h-[42px]">
                             <input
-                                type="url"
-                                value={attachmentUrl}
-                                onChange={(e) => setAttachmentUrl(e.target.value)}
-                                placeholder="Optional: Attach Link (Google Drive, Docs, Image URL)"
-                                className="w-full pl-9 pr-4 py-2.5 bg-background border border-border rounded-lg text-sm focus:outline-none focus:border-emerald-500 transition-colors"
+                                type="file"
+                                onChange={(e) => setAnnouncementAttachment(e.target.files?.[0] || null)}
+                                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                             />
+                            <div className="flex items-center gap-2 px-3 pointer-events-none w-full">
+                                <Paperclip className="w-4 h-4 text-emerald-500 shrink-0" />
+                                <span className="text-sm font-medium text-muted-foreground truncate flex-1 text-left">
+                                    {announcementAttachment ? announcementAttachment.name : "Optional: Attach File or Image (Up to 5MB)"}
+                                </span>
+                            </div>
                         </div>
                         <button
                             onClick={handleSendAnnouncement}

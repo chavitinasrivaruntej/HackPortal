@@ -15,6 +15,7 @@ export interface Issue {
     priority: IssuePriority;
     timestamp: string;
     status: IssueStatus;
+    attachment_url?: string;
 }
 
 interface IssuesState {
@@ -47,7 +48,8 @@ export const useIssuesStore = create<IssuesState>()((set, get) => ({
                 description: dbIssue.description,
                 priority: dbIssue.priority as IssuePriority,
                 timestamp: dbIssue.timestamp,
-                status: dbIssue.status as IssueStatus
+                status: dbIssue.status as IssueStatus,
+                attachment_url: dbIssue.attachment_url
             }));
             set({ issues: mappedIssues, loading: false });
         } else {
@@ -69,7 +71,8 @@ export const useIssuesStore = create<IssuesState>()((set, get) => ({
                 category: issueData.category,
                 description: issueData.description,
                 priority: issueData.priority,
-                status: "Open"
+                status: "Open",
+                attachment_url: issueData.attachment_url || null
             }]);
 
         if (!error) {

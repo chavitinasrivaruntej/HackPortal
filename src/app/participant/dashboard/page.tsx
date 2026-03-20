@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useAuthStore } from "@/store/useAuthStore";
 import { supabase } from "@/lib/supabase";
-import { FileText, CheckCircle2, Trophy, Users, Link as LinkIcon, Megaphone, Paperclip, X, UploadCloud, ChevronRight } from "lucide-react";
+import { FileText, CheckCircle2, Trophy, Users, Link as LinkIcon, Megaphone, Paperclip, X, UploadCloud, ChevronRight, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useIssuesStore, IssuePriority } from "@/store/useIssuesStore";
 
@@ -24,6 +24,8 @@ export default function ParticipantDashboard() {
     const [issueCategory, setIssueCategory] = useState("Technical Bug");
     const [issueDescription, setIssueDescription] = useState("");
     const [issuePriority, setIssuePriority] = useState<IssuePriority>("Medium");
+    const [issueAttachment, setIssueAttachment] = useState<File | null>(null);
+    const [isUploading, setIsUploading] = useState(false);
     const [issueSuccess, setIssueSuccess] = useState(false);
     const addIssue = useIssuesStore((state) => state.addIssue);
     const fetchIssues = useIssuesStore((state) => state.fetchIssues);
@@ -34,23 +36,47 @@ export default function ParticipantDashboard() {
     }, [fetchIssues]);
     const userIssues = allIssues.filter(i => i.teamId === user?.display_id);
 
-    const handleReportIssue = (e: React.FormEvent) => {
+    const handleReportIssue = async (e: React.FormEvent) => {
         e.preventDefault();
-        addIssue({
-            teamName: user?.name || "Unknown Team",
-            teamId: user?.display_id || "Unknown ID",
-            title: issueTitle,
-            category: issueCategory,
-            description: issueDescription,
-            priority: issuePriority,
-        });
-        setIssueSuccess(true);
-        setTimeout(() => {
-            setIssueSuccess(false);
-            setIsIssueModalOpen(false);
-            setIssueTitle("");
-            setIssueDescription("");
-        }, 2000);
+        setIsUploading(true);
+        let attachmentUrl = "";
+
+        try {
+            if (issueAttachment) {
+                const fileExt = issueAttachment.name.split('.').pop();
+                const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+                const { data, error } = await supabase.storage.from('issue-attachments').upload(`public/${fileName}`, issueAttachment);
+                
+                if (data) {
+                    const { data: publicUrlData } = supabase.storage.from('issue-attachments').getPublicUrl(`public/${fileName}`);
+                    attachmentUrl = publicUrlData.publicUrl;
+                }
+            }
+
+            await addIssue({
+                teamName: user?.name || "Unknown Team",
+                teamId: user?.display_id || "Unknown ID",
+                title: issueTitle,
+                category: issueCategory,
+                description: issueDescription,
+                priority: issuePriority,
+                attachment_url: attachmentUrl || undefined,
+            });
+
+            setIssueSuccess(true);
+            setTimeout(() => {
+                setIssueSuccess(false);
+                setIsIssueModalOpen(false);
+                setIssueTitle("");
+                setIssueDescription("");
+                setIssueAttachment(null);
+            }, 2000);
+        } catch (err) {
+            console.error(err);
+            alert("Failed to report issue");
+        } finally {
+            setIsUploading(false);
+        }
     };
 
     useEffect(() => {
@@ -322,13 +348,14 @@ export default function ParticipantDashboard() {
                                     </div>
 
                                     <div className="space-y-1.5">
-                                        <label className="text-sm font-semibold text-foreground">Attachment (Screenshot)</label>
-                                        <div className="w-full border-2 border-dashed border-border rounded-xl p-6 flex flex-col items-center justify-center text-center hover:border-accent hover:bg-accent/5 transition-colors cursor-pointer group">
+                                        <label className="text-sm font-semibold text-foreground">Attachment (Screenshot or PDF)</label>
+                                        <div className="relative w-full border-2 border-dashed border-border rounded-xl p-6 flex flex-col items-center justify-center text-center hover:border-accent hover:bg-accent/5 transition-colors cursor-pointer group">
+                                            <input type="file" onChange={(e) => setIssueAttachment(e.target.files?.[0] || null)} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" accept="image/*,.pdf" />
                                             <div className="w-10 h-10 bg-muted rounded-full flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
                                                 <UploadCloud className="w-5 h-5 text-muted-foreground group-hover:text-accent" />
                                             </div>
-                                            <p className="text-sm font-medium text-foreground">Click to upload or drag and drop</p>
-                                            <p className="text-xs text-muted-foreground mt-1">PNG, JPG, GIF up to 5MB (Visual placeholder)</p>
+                                            <p className="text-sm font-medium text-foreground">{issueAttachment ? issueAttachment.name : "Click to upload or drag and drop"}</p>
+                                            <p className="text-xs text-muted-foreground mt-1">PNG, JPG, PDF up to 5MB</p>
                                         </div>
                                     </div>
                                 </form>
@@ -358,9 +385,8 @@ export default function ParticipantDashboard() {
                         {!issueSuccess && (
                             <div className="p-4 sm:p-5 border-t border-border bg-muted/20 flex gap-3 justify-end">
                                 <button type="button" onClick={() => setIsIssueModalOpen(false)} className="px-5 py-2 text-sm font-semibold bg-transparent hover:bg-muted text-foreground border border-border rounded-xl transition-colors">Cancel</button>
-                                <button type="submit" form="issue-form" className="px-5 py-2 text-sm font-bold bg-accent hover:bg-accent/90 text-accent-foreground rounded-xl shadow-md shadow-accent/20 transition-all flex items-center gap-2">
-                                    Submit Issue
-                                    <ChevronRight className="w-4 h-4" />
+                                <button type="submit" form="issue-form" disabled={isUploading} className="px-5 py-2 text-sm font-bold bg-accent hover:bg-accent/90 text-accent-foreground rounded-xl shadow-md shadow-accent/20 transition-all flex items-center gap-2 disabled:opacity-50">
+                                    {isUploading ? <><Loader2 className="w-4 h-4 animate-spin"/> Submitting...</> : <>Submit Issue <ChevronRight className="w-4 h-4" /></>}
                                 </button>
                             </div>
                         )}
