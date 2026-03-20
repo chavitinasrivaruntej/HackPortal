@@ -21,8 +21,11 @@ export default function AdminDashboard() {
 
     useEffect(() => {
         fetchIssues();
+    }, [fetchIssues]);
+
+    useEffect(() => {
         fetchSettings();
-    }, [fetchIssues, fetchSettings]);
+    }, [fetchSettings]);
     const totalIssues = issues.length;
     const openIssues = issues.filter(i => i.status === "Open" || i.status === "In Progress").length;
     const resolvedIssues = issues.filter(i => i.status === "Resolved" || i.status === "Closed").length;

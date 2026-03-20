@@ -36,8 +36,11 @@ export default function ParticipantDashboard() {
     
     useEffect(() => {
         fetchIssues();
+    }, [fetchIssues]);
+
+    useEffect(() => {
         fetchSettings();
-    }, [fetchIssues, fetchSettings]);
+    }, [fetchSettings]);
     const userIssues = allIssues.filter(i => i.teamId === user?.display_id);
 
     const handleReportIssue = async (e: React.FormEvent) => {
@@ -149,15 +152,19 @@ export default function ParticipantDashboard() {
                 <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-emerald-900/20 blur-[100px] rounded-full pointer-events-none mix-blend-screen"></div>
 
                 <div className="relative p-8 sm:p-12 z-10">
-                    <div className="flex flex-col gap-10">
-                        <div className="space-y-6 w-full">
-                            <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-emerald-500/10 backdrop-blur-md rounded-full border border-emerald-500/20 text-[10px] font-mono font-bold text-emerald-400 uppercase tracking-widest shadow-[0_0_15px_rgba(0,188,125,0.1)]">
+                    <div className="grid grid-cols-1 lg:grid-cols-[1fr_auto] gap-8 items-end">
+                        
+                        {/* LEFT COLUMN — Content + Status Cards */}
+                        <div className="flex flex-col gap-6">
+                            {/* Badge */}
+                            <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-emerald-500/10 backdrop-blur-md rounded-full border border-emerald-500/20 text-[10px] font-mono font-bold text-emerald-400 uppercase tracking-widest shadow-[0_0_15px_rgba(0,188,125,0.1)] w-fit">
                                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
                                 Secure Environment
                             </div>
 
-                            <div className="space-y-3 w-full">
-                                <h1 className="text-4xl sm:text-5xl md:text-6xl font-black tracking-tight text-white/90 w-full break-words leading-tight">
+                            {/* Heading + Team ID */}
+                            <div className="space-y-3">
+                                <h1 className="text-4xl sm:text-5xl md:text-6xl font-black tracking-tight text-white/90 leading-tight">
                                     Welcome, <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-emerald-600">{user?.name}</span>
                                 </h1>
                                 <div className="inline-flex items-center gap-2.5 px-3 py-1.5 bg-black/40 rounded-lg border border-white/10 text-sm font-mono text-emerald-100/70 shadow-inner">
@@ -166,30 +173,43 @@ export default function ParticipantDashboard() {
                                 </div>
                             </div>
 
-                            <div className="grid grid-cols-2 gap-3 w-full max-w-md">
-                                {/* Round Box */}
-                                <div className="bg-black/30 rounded-2xl border border-emerald-500/20 backdrop-blur-sm p-4 space-y-2">
-                                    <p className="text-emerald-500/60 text-[10px] font-mono uppercase tracking-widest flex items-center gap-1.5"><Zap className="w-3 h-3" />Current Round</p>
-                                    <p className="text-emerald-400 text-lg font-black uppercase tracking-wide">{currentRound}</p>
-                                    <p className="text-white/30 text-[10px] font-mono">Admin controlled</p>
-                                </div>
-                                {/* Team Status Box */}
-                                <div className="bg-black/30 rounded-2xl border border-white/5 backdrop-blur-sm p-4 space-y-2">
-                                    <p className="text-white/40 text-[10px] font-mono uppercase tracking-widest flex items-center gap-1.5"><Shield className="w-3 h-3" />Team Status</p>
-                                    <div className="flex items-center gap-2">
-                                        <div className={`w-2.5 h-2.5 rounded-full shrink-0 animate-pulse ${statusInfo.dot}`} />
-                                        <span className={`text-base font-black uppercase tracking-wide ${statusInfo.color}`}>{statusInfo.text}</span>
+                            {/* Status Cards — vertical stack, full width */}
+                            <div className="flex flex-col gap-3 w-full max-w-lg">
+                                {/* Current Round Card */}
+                                <div className="bg-black/30 rounded-2xl border border-emerald-500/20 backdrop-blur-sm px-5 py-4 flex items-center gap-5">
+                                    <div className="p-2 bg-emerald-500/10 rounded-xl">
+                                        <Zap className="w-4 h-4 text-emerald-400" />
                                     </div>
-                                    <p className="text-white/30 text-[10px] font-mono leading-relaxed">{statusInfo.msg}</p>
+                                    <div className="flex-1 min-w-0">
+                                        <p className="text-emerald-500/60 text-[10px] font-mono uppercase tracking-widest mb-0.5">Current Round</p>
+                                        <p className="text-emerald-400 text-base font-black uppercase tracking-wide">{currentRound}</p>
+                                    </div>
+                                    <span className="text-[10px] font-mono text-white/20 shrink-0">Admin controlled</span>
+                                </div>
+
+                                {/* Team Status Card */}
+                                <div className="bg-black/30 rounded-2xl border border-white/5 backdrop-blur-sm px-5 py-4 flex items-center gap-5">
+                                    <div className="p-2 bg-white/5 rounded-xl">
+                                        <Shield className="w-4 h-4 text-white/40" />
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                        <p className="text-white/40 text-[10px] font-mono uppercase tracking-widest mb-0.5">Team Status</p>
+                                        <div className="flex items-center gap-2">
+                                            <div className={`w-2 h-2 rounded-full shrink-0 animate-pulse ${statusInfo.dot}`} />
+                                            <span className={`text-base font-black uppercase tracking-wide ${statusInfo.color}`}>{statusInfo.text}</span>
+                                        </div>
+                                    </div>
+                                    <span className="text-[10px] font-mono text-white/20 shrink-0 max-w-[120px] text-right leading-relaxed">{statusInfo.msg}</span>
                                 </div>
                             </div>
                         </div>
 
-                        <div className="flex flex-wrap items-center justify-start sm:justify-end gap-4 pt-4 shrink-0">
-                            <Link href="/participant/problems" className="px-8 py-4 bg-emerald-500 hover:bg-emerald-400 text-black font-black rounded-2xl transition-all shadow-[0_0_20px_rgba(16,185,129,0.3)] hover:shadow-[0_0_40px_rgba(16,185,129,0.5)] hover:-translate-y-1 uppercase tracking-wider text-sm flex items-center gap-2">
+                        {/* RIGHT COLUMN — Action Buttons anchored bottom */}
+                        <div className="flex flex-col items-end justify-end gap-3 self-end pb-0.5">
+                            <Link href="/participant/problems" className="px-8 py-4 bg-emerald-500 hover:bg-emerald-400 text-black font-black rounded-2xl transition-all shadow-[0_0_20px_rgba(16,185,129,0.3)] hover:shadow-[0_0_40px_rgba(16,185,129,0.5)] hover:-translate-y-0.5 uppercase tracking-wider text-sm flex items-center gap-2 w-full sm:w-auto justify-center whitespace-nowrap">
                                 Access Problems
                             </Link>
-                            <Link href="/participant/team" className="px-8 py-4 bg-white/5 hover:bg-white/10 text-white font-bold rounded-2xl transition-all backdrop-blur-xl border border-white/10 hover:border-white/20 uppercase tracking-wider text-sm">
+                            <Link href="/participant/team" className="px-8 py-4 bg-white/5 hover:bg-white/10 text-white font-bold rounded-2xl transition-all backdrop-blur-xl border border-white/10 hover:border-white/20 uppercase tracking-wider text-sm w-full sm:w-auto text-center whitespace-nowrap">
                                 View Roster
                             </Link>
                         </div>
