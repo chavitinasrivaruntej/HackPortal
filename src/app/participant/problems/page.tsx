@@ -120,7 +120,7 @@ export default function ProblemStatementsPage() {
     }
 
     return (
-        <div className="space-y-6 animate-in fade-in duration-500 pb-12">
+        <div className="space-y-6  pb-12">
             <div>
                 <h2 className="text-3xl font-bold tracking-tight mb-2">Problem Statements</h2>
                 <p className="text-muted-foreground">Select a challenge for your team. Selection is final and locked once confirmed.</p>

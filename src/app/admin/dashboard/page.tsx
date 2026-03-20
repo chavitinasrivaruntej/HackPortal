@@ -2,12 +2,23 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
-import { Loader2, Users, FileText, CheckCircle2, Clock, UserX, AlertTriangle, Send, Target, Paperclip, ExternalLink, MessageSquare, Trash2 } from "lucide-react";
+import { Loader2, Users, FileText, CheckCircle2, Clock, UserX, AlertTriangle, Send, Target, Paperclip, ExternalLink, MessageSquare, Trash2, ListTree, Activity } from "lucide-react";
+import { useIssuesStore } from "@/store/useIssuesStore";
 
 export default function AdminDashboard() {
     const [stats, setStats] = useState<any>(null);
     const [allTeams, setAllTeams] = useState<any[]>([]);
     const [announcements, setAnnouncements] = useState<any[]>([]);
+
+    const issues = useIssuesStore((state) => state.issues);
+    const fetchIssues = useIssuesStore((state) => state.fetchIssues);
+
+    useEffect(() => {
+        fetchIssues();
+    }, [fetchIssues]);
+    const totalIssues = issues.length;
+    const openIssues = issues.filter(i => i.status === "Open" || i.status === "In Progress").length;
+    const resolvedIssues = issues.filter(i => i.status === "Resolved" || i.status === "Closed").length;
 
     // UI states
     const [loading, setLoading] = useState(true);
@@ -128,7 +139,7 @@ export default function AdminDashboard() {
     );
 
     return (
-        <div className="space-y-8 animate-in slide-in-from-bottom-4 duration-500 pb-12">
+        <div className="space-y-8  pb-12">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center">
                 <div>
                     <h2 className="text-3xl font-bold tracking-tight">Overview Dashboard</h2>
@@ -141,7 +152,7 @@ export default function AdminDashboard() {
 
                 {/* Problem Statements stat does not filter teams directly */}
                 <div className="bg-card border border-border rounded-2xl p-5 shadow-sm flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-xl flex items-center justify-center bg-purple-500/10 text-purple-500">
+                    <div className="w-12 h-12 rounded-xl flex items-center justify-center bg-emerald-500/10 text-emerald-500">
                         <FileText className="w-6 h-6" />
                     </div>
                     <div>
@@ -157,20 +168,56 @@ export default function AdminDashboard() {
                 <StatCard title="Frozen" value={stats?.frozen} icon={AlertTriangle} color="bg-yellow-500/10 text-yellow-600 dark:text-yellow-500" filterKey="status" val="Frozen" />
             </div>
 
+            {/* Issue Tracking Mini-Dashboard */}
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mt-4">
+                <div>
+                    <h3 className="text-xl font-bold tracking-tight">Participant Support Tickets</h3>
+                </div>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
+                <div className="bg-card border border-border rounded-2xl p-5 shadow-sm flex items-center gap-4 hover:border-accent transition-colors">
+                    <div className="w-12 h-12 rounded-xl flex items-center justify-center bg-blue-500/10 text-blue-500">
+                        <ListTree className="w-6 h-6" />
+                    </div>
+                    <div>
+                        <p className="text-sm text-muted-foreground font-medium mb-1">Total Issues</p>
+                        <p className="text-2xl font-bold">{totalIssues}</p>
+                    </div>
+                </div>
+                <div className="bg-card border border-border rounded-2xl p-5 shadow-sm flex items-center gap-4 hover:border-accent transition-colors">
+                    <div className="w-12 h-12 rounded-xl flex items-center justify-center bg-orange-500/10 text-orange-500">
+                        <Activity className="w-6 h-6" />
+                    </div>
+                    <div>
+                        <p className="text-sm text-muted-foreground font-medium mb-1">Action Required</p>
+                        <p className="text-2xl font-bold">{openIssues}</p>
+                    </div>
+                </div>
+                <div className="bg-card border border-border rounded-2xl p-5 shadow-sm flex items-center gap-4 hover:border-accent transition-colors">
+                    <div className="w-12 h-12 rounded-xl flex items-center justify-center bg-emerald-500/10 text-emerald-500">
+                        <CheckCircle2 className="w-6 h-6" />
+                    </div>
+                    <div>
+                        <p className="text-sm text-muted-foreground font-medium mb-1">Resolved Tickets</p>
+                        <p className="text-2xl font-bold">{resolvedIssues}</p>
+                    </div>
+                </div>
+            </div>
+
             {/* Broadcast Form */}
             <div className="bg-card border border-border rounded-2xl p-6 shadow-sm">
                 <div className="flex items-center gap-2 mb-4">
-                    <div className="p-2 bg-violet-500/10 rounded-lg text-violet-500"><Send className="w-5 h-5" /></div>
+                    <div className="p-2 bg-emerald-500/10 rounded-lg text-emerald-500"><Send className="w-5 h-5" /></div>
                     <h3 className="text-xl font-bold text-foreground">Broadcast Global Announcement</h3>
                 </div>
-                <p className="text-sm text-muted-foreground mb-6">Send an immediate, high-priority violet banner to all participant screens universally.</p>
+                <p className="text-sm text-muted-foreground mb-6">Send an immediate, high-priority green banner to all participant screens universally.</p>
 
                 <div className="flex flex-col gap-4">
                     <textarea
                         value={announcementMsg}
                         onChange={(e) => setAnnouncementMsg(e.target.value)}
                         placeholder="Type your important announcement here (e.g. 'Lunch is now being served in the main hall!')..."
-                        className="w-full px-4 py-3 bg-background border border-border rounded-lg text-sm focus:outline-none focus:border-violet-500 transition-colors resize-none h-24"
+                        className="w-full px-4 py-3 bg-background border border-border rounded-lg text-sm focus:outline-none focus:border-emerald-500 transition-colors resize-none h-24"
                     />
 
                     <div className="flex flex-col sm:flex-row gap-3 items-center">
@@ -181,13 +228,13 @@ export default function AdminDashboard() {
                                 value={attachmentUrl}
                                 onChange={(e) => setAttachmentUrl(e.target.value)}
                                 placeholder="Optional: Attach Link (Google Drive, Docs, Image URL)"
-                                className="w-full pl-9 pr-4 py-2.5 bg-background border border-border rounded-lg text-sm focus:outline-none focus:border-violet-500 transition-colors"
+                                className="w-full pl-9 pr-4 py-2.5 bg-background border border-border rounded-lg text-sm focus:outline-none focus:border-emerald-500 transition-colors"
                             />
                         </div>
                         <button
                             onClick={handleSendAnnouncement}
                             disabled={announcing || !announcementMsg.trim()}
-                            className="w-full sm:w-auto px-8 py-2.5 bg-violet-600 hover:bg-violet-700 text-white font-medium rounded-lg shadow-md shadow-violet-500/20 disabled:opacity-70 flex items-center justify-center gap-2 shrink-0 transition-all focus:ring-4 focus:ring-violet-500/30"
+                            className="w-full sm:w-auto px-8 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-medium rounded-lg shadow-md shadow-emerald-500/20 disabled:opacity-70 flex items-center justify-center gap-2 shrink-0 transition-all focus:ring-4 focus:ring-emerald-500/30"
                         >
                             {announcing ? <Loader2 className="w-4 h-4 animate-spin" /> : "Broadcast Now"}
                         </button>
@@ -199,7 +246,7 @@ export default function AdminDashboard() {
             <div className="bg-card border border-border rounded-2xl shadow-sm overflow-hidden">
                 <div className="px-6 py-5 border-b border-border flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                        <div className="p-2 bg-violet-500/10 text-violet-500 rounded-lg"><MessageSquare className="w-4 h-4" /></div>
+                        <div className="p-2 bg-emerald-500/10 text-emerald-500 rounded-lg"><MessageSquare className="w-4 h-4" /></div>
                         <div>
                             <h3 className="text-lg font-bold text-foreground">Broadcast History</h3>
                             <p className="text-xs text-muted-foreground">{announcements.length} announcement{announcements.length !== 1 ? 's' : ''} sent</p>
@@ -219,13 +266,13 @@ export default function AdminDashboard() {
                             const t = new Date(ann.created_at);
                             return (
                                 <div key={ann.id} className="group flex gap-4 items-start p-5 hover:bg-muted/30 transition-colors">
-                                    <div className="shrink-0 w-8 h-8 rounded-full bg-violet-500/10 text-violet-500 flex items-center justify-center mt-0.5">
+                                    <div className="shrink-0 w-8 h-8 rounded-full bg-emerald-500/10 text-emerald-500 flex items-center justify-center mt-0.5">
                                         <MessageSquare className="w-4 h-4" />
                                     </div>
                                     <div className="flex-1 min-w-0">
                                         <p className="text-sm font-medium text-foreground leading-relaxed whitespace-pre-wrap">{text}</p>
                                         {url && (
-                                            <a href={url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 mt-2 text-xs font-semibold text-violet-500 hover:text-violet-600 bg-violet-500/10 hover:bg-violet-500/20 px-2.5 py-1 rounded-md transition-colors">
+                                            <a href={url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 mt-2 text-xs font-semibold text-emerald-500 hover:text-emerald-600 bg-emerald-500/10 hover:bg-emerald-500/20 px-2.5 py-1 rounded-md transition-colors">
                                                 <Paperclip className="w-3 h-3" /> View Attachment
                                             </a>
                                         )}

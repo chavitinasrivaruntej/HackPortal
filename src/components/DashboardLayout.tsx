@@ -4,10 +4,11 @@ import { useAuthStore } from "@/store/useAuthStore";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import { LogOut, Menu, X, LucideIcon, Sun, Moon, User, ChevronLeft } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { useTheme } from "next-themes";
 import { AnnouncementsDrawer } from "./AnnouncementsDrawer";
+import Image from "next/image";
 
 export interface MenuItem {
     name: string;
@@ -29,12 +30,33 @@ export function DashboardLayout({
     const router = useRouter();
     const pathname = usePathname();
     const [sidebarOpen, setSidebarOpen] = useState(false);
+    const [isNavigating, setIsNavigating] = useState(false);
     const { theme, setTheme } = useTheme();
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
 
     const handleLogout = () => {
         logout();
+        setIsNavigating(true);
         router.push("/login");
     };
+
+    useEffect(() => {
+        setIsNavigating(false);
+    }, [pathname]);
+
+    useEffect(() => {
+        let timeoutId: NodeJS.Timeout;
+        if (isNavigating) {
+            timeoutId = setTimeout(() => {
+                setIsNavigating(false);
+            }, 3000);
+        }
+        return () => clearTimeout(timeoutId);
+    }, [isNavigating]);
 
     return (
         <div className="min-h-screen flex bg-background">
@@ -53,9 +75,27 @@ export function DashboardLayout({
                     sidebarOpen ? "translate-x-0" : "-translate-x-full"
                 )}
             >
-                <div className="flex items-center justify-between h-16 px-6 border-b border-border">
-                    <span className="text-xl font-bold tracking-tight">HackPortal</span>
-                    <button className="lg:hidden" onClick={() => setSidebarOpen(false)}>
+                <div className="flex items-center justify-between h-16 px-4 border-b border-border gap-2">
+                    <div className="flex items-center gap-2.5 min-w-0">
+                        {/* Explicit controlled logo swapping for optimal visibility */}
+                        <div className="shrink-0 relative w-12 h-12 flex items-center justify-center overflow-hidden">
+                            {mounted ? (
+                                <Image
+                                    src={theme === 'dark' ? "/logo-darkmode.png" : "/logo-lightmode.png"}
+                                    alt="CTF JNTUK"
+                                    width={48}
+                                    height={48}
+                                    className="object-contain drop-shadow-sm"
+                                />
+                            ) : (
+                                <div className="w-12 h-12 opacity-0"></div>
+                            )}
+                        </div>
+                        <span className="font-black text-xl sm:text-2xl tracking-tighter leading-none truncate font-sans">
+                            CTF <span className="text-emerald-500 mx-0.5">–</span> JNTUK
+                        </span>
+                    </div>
+                    <button className="lg:hidden shrink-0" onClick={() => setSidebarOpen(false)}>
                         <X className="w-5 h-5 text-muted-foreground" />
                     </button>
                 </div>
@@ -64,16 +104,22 @@ export function DashboardLayout({
                     {menuItems.map((item) => {
                         const isActive = pathname.startsWith(item.href);
                         return (
-                            <Link
-                                key={item.href}
-                                href={item.href}
-                                className={cn(
-                                    "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all font-medium",
-                                    isActive
-                                        ? "bg-accent/10 text-accent font-semibold"
-                                        : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                                )}
-                            >
+                                <Link
+                                    key={item.href}
+                                    href={item.href}
+                                    onClick={(e) => {
+                                        if (pathname !== item.href && !pathname.startsWith(item.href)) {
+                                            setIsNavigating(true);
+                                        }
+                                        setSidebarOpen(false);
+                                    }}
+                                    className={cn(
+                                        "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all font-medium",
+                                        isActive
+                                            ? "bg-accent/10 text-accent font-semibold"
+                                            : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                                    )}
+                                >
                                 <item.icon className={cn("w-5 h-5", isActive ? "text-accent" : "opacity-70")} />
                                 {item.name}
                             </Link>
@@ -104,17 +150,20 @@ export function DashboardLayout({
             <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
                 {/* Top Header */}
                 <header className="h-16 flex items-center justify-between px-4 sm:px-6 lg:px-8 bg-card border-b border-border sticky top-0 z-30">
-                    <div className="flex items-center gap-4">
+                    <div className="flex items-center w-1/3">
                         <button
                             onClick={() => setSidebarOpen(true)}
                             className="lg:hidden p-2 -ml-2 text-muted-foreground hover:bg-muted rounded-md"
                         >
                             <Menu className="w-5 h-5" />
                         </button>
-                        <h1 className="text-lg font-semibold text-foreground">{title}</h1>
                     </div>
 
-                    <div className="flex items-center gap-4">
+                    <div className="flex justify-center flex-1 w-1/3">
+                        <h1 className="text-lg font-bold text-foreground text-center tracking-tight">{title}</h1>
+                    </div>
+
+                    <div className="flex items-center justify-end gap-3 w-1/3">
                         <AnnouncementsDrawer />
                         <button
                             onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
@@ -136,6 +185,8 @@ export function DashboardLayout({
                     </div>
                 </div>
             </main>
+
+            {/* Global Tab Navigation Loading Overlay Removed for Instant Transitions */}
         </div >
     );
 }

@@ -23,6 +23,11 @@
   --radius-md: 0.75rem;
   --radius-lg: 1rem;
   --radius-xl: 1.5rem;
+
+  --color-emerald-400: #00bc7d;
+  --color-emerald-500: #00bc7d;
+  --color-emerald-600: #00a66e;
+  --color-emerald-700: #008f5d;
 }
 
 :root {
@@ -34,7 +39,7 @@
   --input: #e2e8f0;
   --primary: #0f172a;
   --primary-foreground: #f8fafc;
-  --accent: #4f46e5; /* Indigo-600 */
+  --accent: #00bc7d; /* Green */
   --accent-foreground: #ffffff;
   --muted: #f1f5f9;
   --muted-foreground: #64748b;
@@ -51,7 +56,7 @@
   --input: #1e293b;
   --primary: #f8fafc;
   --primary-foreground: #020617;
-  --accent: #6366f1; /* Indigo-500 */
+  --accent: #00bc7d; /* Green */
   --accent-foreground: #ffffff;
   --muted: #1e293b;
   --muted-foreground: #94a3b8;

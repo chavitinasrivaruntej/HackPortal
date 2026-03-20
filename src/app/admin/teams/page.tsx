@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
-import { Loader2, Search, Edit2, RotateCcw, AlertCircle, Plus, Trash2, Save, User as UserIcon } from "lucide-react";
+import { Loader2, Search, Edit2, RotateCcw, AlertCircle, Plus, Trash2, Save, User as UserIcon, XCircle } from "lucide-react";
 
 export default function AdminTeamsPage() {
     const [teams, setTeams] = useState<any[]>([]);
@@ -14,6 +14,8 @@ export default function AdminTeamsPage() {
     const [modalMode, setModalMode] = useState<"create" | "edit">("create");
     const [editTeamId, setEditTeamId] = useState<string | null>(null);
     const [actionLoading, setActionLoading] = useState(false);
+    
+    const [teamToEliminate, setTeamToEliminate] = useState<{ id: string, name: string } | null>(null);
 
     // Form State
     const defaultTeam = { team_id: "", password: "", team_name: "", college_name: "", status: "Active" };
@@ -93,6 +95,30 @@ export default function AdminTeamsPage() {
         }
     };
 
+    const confirmEliminate = async () => {
+        if (!teamToEliminate) return;
+        setActionLoading(true);
+        const { error } = await supabase.from('teams').update({ status: 'Eliminated' }).eq('id', teamToEliminate.id);
+        if (error) alert(error.message);
+        else fetchTeams();
+        setActionLoading(false);
+        setTeamToEliminate(null);
+    };
+
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === "Enter" && teamToEliminate && !actionLoading) {
+                e.preventDefault();
+                confirmEliminate();
+            }
+            if (e.key === "Escape" && teamToEliminate) {
+                setTeamToEliminate(null);
+            }
+        };
+        window.addEventListener("keydown", handleKeyDown);
+        return () => window.removeEventListener("keydown", handleKeyDown);
+    }, [teamToEliminate, actionLoading]);
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!membersData[0].name.trim() || !membersData[1].name.trim()) {
@@ -166,7 +192,7 @@ export default function AdminTeamsPage() {
     if (loading) return <div className="flex justify-center p-12"><Loader2 className="w-8 h-8 animate-spin text-accent" /></div>;
 
     return (
-        <div className="space-y-6 animate-in fade-in duration-500 pb-24">
+        <div className="space-y-6  pb-24">
             <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
                 <div>
                     <h2 className="text-3xl font-bold tracking-tight mb-1">Team Management</h2>
@@ -235,6 +261,9 @@ export default function AdminTeamsPage() {
                                     <td className="px-5 py-4 flex items-center justify-end gap-1.5 opacity-80 group-hover:opacity-100 transition-opacity">
                                         <button onClick={() => openEditModal(team)} className="p-2 border border-border bg-background hover:bg-accent/10 hover:text-accent hover:border-accent/30 rounded-lg transition-all" title="Edit Full Team Details">
                                             <Edit2 className="w-4 h-4" />
+                                        </button>
+                                        <button onClick={() => { if (team.status !== "Eliminated") setTeamToEliminate({ id: team.id, name: team.team_name }); }} className={`p-2 border border-border transition-all rounded-lg ${team.status === "Eliminated" ? "bg-muted text-muted-foreground cursor-not-allowed opacity-50" : "bg-background hover:bg-red-500/10 hover:text-red-500 hover:border-red-500/30"}`} title={team.status === "Eliminated" ? "Already Eliminated" : "Instantly Eliminate Team"} disabled={team.status === "Eliminated"}>
+                                            <XCircle className="w-4 h-4" />
                                         </button>
                                         {team.selected_problem_id && (
                                             <button onClick={() => handleResetSelection(team.id, team.team_name)} className="p-2 border border-border bg-background hover:bg-orange-500/10 hover:text-orange-600 hover:border-orange-500/30 rounded-lg transition-all" title="Force Reset Problem Selection">
@@ -381,6 +410,36 @@ export default function AdminTeamsPage() {
                 </div>
             )}
 
+            {/* QUICK ELIMINATE CONFIRMATION MODAL */}
+            {teamToEliminate && (
+                <div 
+                    className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm animate-in fade-in" 
+                    onClick={() => setTeamToEliminate(null)}
+                >
+                    <div className="bg-card w-full max-w-sm border-2 border-red-500/20 rounded-2xl shadow-[0_0_50px_rgba(239,68,68,0.1)] p-6 relative animate-in zoom-in-95 flex flex-col items-center text-center" onClick={e => e.stopPropagation()}>
+                        <div className="w-16 h-16 rounded-full bg-red-500/10 flex items-center justify-center mb-4">
+                            <AlertCircle className="w-8 h-8 text-red-500" />
+                        </div>
+                        <h3 className="text-xl font-bold text-foreground mb-2">Eliminate Team?</h3>
+                        <p className="text-[13px] text-muted-foreground mb-4 leading-relaxed">
+                            Are you absolutely sure you want to eliminate <span className="font-bold text-foreground block mt-1 text-base">{teamToEliminate.name}</span>
+                        </p>
+                        
+                        <div className="bg-muted px-4 py-2 rounded-lg mb-6 flex items-center gap-2 border border-border">
+                            <span className="text-xs font-mono text-muted-foreground">Press</span>
+                            <kbd className="px-2 py-0.5 bg-background border border-border rounded font-bold text-xs shadow-sm">Enter</kbd>
+                            <span className="text-xs font-mono text-muted-foreground">to confirm</span>
+                        </div>
+                        
+                        <div className="flex gap-3 w-full">
+                            <button onClick={() => setTeamToEliminate(null)} className="flex-1 py-2.5 bg-muted text-foreground font-semibold rounded-xl hover:bg-muted/80 transition-colors text-sm border border-border">Cancel</button>
+                            <button onClick={confirmEliminate} disabled={actionLoading} className="flex-1 py-2.5 bg-red-500 hover:bg-red-600 text-white font-bold rounded-xl transition-all shadow-lg shadow-red-500/20 flex flex-row items-center justify-center gap-2 text-sm">
+                                {actionLoading ? <Loader2 className="w-4 h-4 animate-spin text-white/70" /> : "Eliminate"}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

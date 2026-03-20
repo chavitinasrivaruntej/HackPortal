@@ -6,8 +6,11 @@ import { ThemeProvider } from "@/components/ThemeProvider";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "HackPortal - Premium Event Operations",
+  title: "CTF - JNTUK",
   description: "Live hackathon dashboard with role-based features.",
+  icons: {
+    icon: "/logo-darkmode.png",
+  },
 };
 
 export default function RootLayout({

@@ -51,7 +51,7 @@ export default function ParticipantTeamPage() {
         : "bg-green-500/10 text-green-600 border-green-500/20";
 
     return (
-        <div className="space-y-8 animate-in fade-in duration-500 pb-12">
+        <div className="space-y-8  pb-12">
             <div>
                 <h2 className="text-3xl font-bold tracking-tight mb-2">Team Overview</h2>
                 <p className="text-muted-foreground">Comprehensive details of your team registration and member roster.</p>
@@ -89,7 +89,7 @@ export default function ParticipantTeamPage() {
                             return (
                                 <div key={member.id} className="bg-card border border-border shadow-sm rounded-2xl p-6 flex flex-col h-full transform transition-transform hover:-translate-y-1 hover:shadow-md">
                                     <div className="flex justify-between items-start mb-4">
-                                        <div className={`px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-wider ${isLead ? 'bg-violet-500/10 text-violet-500 border border-violet-500/20' : 'bg-muted text-muted-foreground border border-border/50'}`}>
+                                        <div className={`px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-wider ${isLead ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20' : 'bg-muted text-muted-foreground border border-border/50'}`}>
                                             {member.member_role}
                                         </div>
                                     </div>

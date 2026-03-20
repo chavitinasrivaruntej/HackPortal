@@ -26,7 +26,7 @@ export default function AdminAllocationsPage() {
     if (loading) return <div className="flex justify-center p-12"><Loader2 className="w-8 h-8 animate-spin text-accent" /></div>;
 
     return (
-        <div className="space-y-6 animate-in fade-in duration-500 pb-12">
+        <div className="space-y-6  pb-12">
             <div>
                 <h2 className="text-3xl font-bold tracking-tight mb-1">Allocation Status</h2>
                 <p className="text-muted-foreground">Matrix view of teams assigned to problem statements.</p>

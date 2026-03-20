@@ -34,7 +34,7 @@ export default function AdminEliminationsPage() {
     if (loading) return <div className="flex justify-center p-12"><Loader2 className="w-8 h-8 animate-spin text-accent" /></div>;
 
     return (
-        <div className="space-y-6 animate-in fade-in duration-500 pb-12">
+        <div className="space-y-6  pb-12">
             <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
                 <div>
                     <h2 className="text-3xl font-bold tracking-tight mb-1 text-destructive flex items-center gap-3">
