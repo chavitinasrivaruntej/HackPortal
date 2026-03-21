@@ -8,19 +8,38 @@ export default function AdminAllocationsPage() {
     const [data, setData] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
 
+    const fetchData = async () => {
+        // Fetch problems with their teams using the teams foreign key to selected_problem_id
+        const { data: problems } = await supabase
+            .from("problem_statements")
+            .select("*, teams(team_id, team_name, status)")
+            .order("domain", { ascending: true });
+
+        if (problems) setData(problems);
+        setLoading(false);
+    };
+
     useEffect(() => {
-        const fetchData = async () => {
-            // Fetch problems with their teams using the teams foreign key to selected_problem_id
-            const { data: problems } = await supabase
-                .from("problem_statements")
-                .select("*, teams(team_id, team_name, status)")
-                .order("domain", { ascending: true });
-
-            if (problems) setData(problems);
-            setLoading(false);
-        };
-
         fetchData();
+
+        // Subscribe to changes that affect allocations
+        const channel = supabase
+            .channel('admin:allocations_sync')
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'problem_statements' }, () => {
+                fetchData();
+            })
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'teams' }, () => {
+                fetchData();
+            })
+            // team_selections affects teams and problem_statements triggered updates
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'team_selections' }, () => {
+                fetchData();
+            })
+            .subscribe();
+
+        return () => {
+            supabase.removeChannel(channel);
+        };
     }, []);
 
     if (loading) return <div className="flex justify-center p-12"><Loader2 className="w-8 h-8 animate-spin text-accent" /></div>;

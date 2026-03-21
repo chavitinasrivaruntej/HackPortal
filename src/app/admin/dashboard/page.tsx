@@ -80,8 +80,8 @@ export default function AdminDashboard() {
     useEffect(() => {
         fetchData();
 
-        // Listen to new and deleted announcements for instant update
-        const channel = supabase.channel('admin_announcements')
+        // 1. Listen to announcements (already exists)
+        const annChannel = supabase.channel('admin_announcements')
             .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'announcements' }, (payload) => {
                 setAnnouncements(prev => [payload.new, ...prev]);
             })
@@ -90,7 +90,34 @@ export default function AdminDashboard() {
             })
             .subscribe();
 
-        return () => { supabase.removeChannel(channel); };
+        // 2. Listen to problem selection events (TEAM SELECTIONS)
+        // This affects the "Teams Selected" and "Pending Selection" stats
+        const selectionChannel = supabase.channel('admin_selection_sync')
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'team_selections' }, () => {
+                fetchData(); // Simplest way to recompute all derived stats
+            })
+            .subscribe();
+
+        // 3. Listen to problem statement changes (limits, domain, etc.)
+        const psChannel = supabase.channel('admin_ps_sync')
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'problem_statements' }, () => {
+                fetchData();
+            })
+            .subscribe();
+
+        // 4. Listen to team status changes (Shortlisted, Eliminated, etc.)
+        const teamsChannel = supabase.channel('admin_teams_sync')
+            .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'teams' }, () => {
+                fetchData();
+            })
+            .subscribe();
+
+        return () => { 
+            supabase.removeChannel(annChannel);
+            supabase.removeChannel(selectionChannel);
+            supabase.removeChannel(psChannel);
+            supabase.removeChannel(teamsChannel);
+        };
     }, []);
 
     const handleSendAnnouncement = async () => {

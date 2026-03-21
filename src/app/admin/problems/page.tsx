@@ -35,6 +35,21 @@ export default function AdminProblemsPage() {
 
     useEffect(() => {
         fetchProblems();
+
+        // Subscribe to problem statement changes (counts, limits, content)
+        const channel = supabase
+            .channel('admin:problem_statements_sync')
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'problem_statements' }, () => {
+                fetchProblems();
+            })
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'team_selections' }, () => {
+                fetchProblems();
+            })
+            .subscribe();
+
+        return () => {
+            supabase.removeChannel(channel);
+        };
     }, []);
 
     const handleDelete = async (id: string, title: string) => {

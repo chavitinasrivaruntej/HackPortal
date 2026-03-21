@@ -51,19 +51,45 @@ export default function ProblemStatementsPage() {
     useEffect(() => {
         fetchProblems();
 
-        // Subscribe to problem limit changes
+        // 1. Subscribe to problem statement changes (counts, limits, content)
         const probSub = supabase
-            .channel('public:problem_statements')
-            .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'problem_statements' }, payload => {
-                // update local state
-                setProblems(prev => prev.map(p => p.id === payload.new.id ? payload.new : p));
+            .channel('realtime:problem_statements')
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'problem_statements' }, (payload) => {
+                if (payload.eventType === 'UPDATE') {
+                    setProblems(prev => prev.map(p => p.id === payload.new.id ? payload.new : p));
+                } else {
+                    // For INSERT/DELETE, it's safer to refetch to maintain ordering
+                    fetchProblems();
+                }
             })
             .subscribe();
 
+        // 2. Subscribe to team selections for the CURRENT team
+        // This ensures if an admin resets the selection, the UI unlocks instantly
+        let selectionSub: any = null;
+        if (user?.id) {
+            selectionSub = supabase
+                .channel(`realtime:team_selection:${user.id}`)
+                .on('postgres_changes', { 
+                    event: '*', 
+                    schema: 'public', 
+                    table: 'team_selections',
+                    filter: `team_ref_id=eq.${user.id}`
+                }, (payload) => {
+                    if (payload.eventType === 'INSERT') {
+                        setHasSelection(true);
+                    } else if (payload.eventType === 'DELETE') {
+                        setHasSelection(false);
+                    }
+                })
+                .subscribe();
+        }
+
         return () => {
             supabase.removeChannel(probSub);
+            if (selectionSub) supabase.removeChannel(selectionSub);
         };
-    }, [user]);
+    }, [user?.id]);
 
     const handleSelect = async () => {
         if (!selectedProblem || !user?.id) return;
