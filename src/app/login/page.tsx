@@ -37,7 +37,7 @@ export default function LoginPage() {
                     name: "Master Admin",
                 });
                 setLoginSuccess({ name: "Master Admin" });
-                setTimeout(() => router.push("/admin/dashboard"), 4000);
+                setTimeout(() => router.push("/admin/dashboard"), 5500);
                 return;
             }
 
@@ -57,7 +57,7 @@ export default function LoginPage() {
                     name: "Administrator",
                 });
                 setLoginSuccess({ name: "Administrator" });
-                setTimeout(() => router.push("/admin/dashboard"), 4000);
+                setTimeout(() => router.push("/admin/dashboard"), 5500);
                 return;
             }
 
@@ -78,7 +78,7 @@ export default function LoginPage() {
                     status: teamData.status,
                 });
                 setLoginSuccess({ name: teamData.team_name });
-                setTimeout(() => router.push("/participant/dashboard"), 4000);
+                setTimeout(() => router.push("/participant/dashboard"), 5500);
                 return;
             }
 
@@ -100,44 +100,78 @@ export default function LoginPage() {
                 <div className="relative z-10 flex flex-col items-center animate-in zoom-in-95 fade-in duration-700 w-full max-w-lg p-8">
                     
                     <div className="w-full flex justify-center mb-8 relative">
-                        {/* Scanning scanner line effect */}
-                        <div className="absolute top-0 w-32 h-[2px] bg-emerald-500 shadow-[0_0_20px_#00bc7d] animate-[scan_2s_ease-in-out_infinite] z-20"></div>
-                        <div className="border border-emerald-500/30 bg-emerald-500/10 p-5 rounded-2xl relative overflow-hidden shadow-[0_0_40px_rgba(0,188,125,0.15)]">
-                            <ShieldCheck className="w-14 h-14 text-emerald-400" />
+                        {/* Shield Scanner Animation */}
+                        <div className="relative border border-emerald-500/30 bg-emerald-500/10 p-5 rounded-2xl overflow-hidden shadow-[0_0_40px_rgba(0,188,125,0.15)] group" style={{ animation: 'bgActivate 0.5s ease-out 1.2s forwards' }}>
+                            <ShieldCheck className="w-14 h-14 text-slate-600 relative z-10" style={{ animation: 'shieldActivate 0.5s ease-out 1.2s forwards' }} />
+                            {/* Scanning scanner line effect */}
+                            <div className="absolute left-0 right-0 h-[2px] bg-emerald-400 shadow-[0_0_15px_#34d399] z-20 opacity-0" style={{ animation: 'scanSweep 1.2s ease-in-out forwards', top: '-10px' }}></div>
                         </div>
                     </div>
 
                     <div className="text-center space-y-4 w-full">
+                        {/* Access Granted Text Animation */}
                         <h1 className="text-3xl font-bold text-emerald-500 tracking-widest uppercase flex items-center justify-center gap-3">
-                            <span className="w-2 h-6 bg-emerald-500 animate-pulse"></span>
-                            Access Granted
+                            <span className="w-2 h-6 bg-emerald-500 mt-1 opacity-0" style={{ animation: 'fadeIn 0.1s 1.5s forwards, pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite' }}></span>
+                            <span className="opacity-0 blur-sm tracking-[0.3em]" style={{ animation: 'cyberReveal 0.5s cubic-bezier(0.1, 0.8, 0.2, 1) 1.6s forwards' }}>
+                                Access Granted
+                            </span>
                         </h1>
-                        <p className="text-emerald-500/60 text-sm uppercase tracking-[0.2em] border-y border-emerald-500/20 py-2 inline-block">
+                        {/* Secure Connection Text Animation */}
+                        <p className="text-emerald-500/60 text-sm uppercase tracking-[0.2em] border-y border-emerald-500/20 py-2 inline-block opacity-0 translate-y-2" style={{ animation: 'slightUpFade 0.4s ease-out 2.2s forwards' }}>
                             Secure Connection Established
                         </p>
                     </div>
 
                     <div className="w-full bg-black/60 border border-emerald-500/20 rounded-xl p-6 mt-8 font-mono shadow-[inset_0_0_20px_rgba(0,188,125,0.05)] backdrop-blur-xl">
+                        {/* Terminal Status Lines Animation */}
                         <div className="flex items-start gap-3 text-emerald-400 mb-3">
-                            <Terminal className="w-4 h-4 mt-1 shrink-0 opacity-70" />
+                            <Terminal className="w-4 h-4 mt-1 shrink-0 opacity-0" style={{ animation: 'fadeIn 0.1s 2.5s forwards' }} />
                             <div className="text-sm">
-                                <p className="opacity-70 mb-1">&gt; Authenticating credentials...</p>
-                                <p className="opacity-70 mb-1">&gt; Checking permissions...</p>
-                                <p className="text-emerald-300 font-bold">&gt; Identity verified: {loginSuccess.name}</p>
+                                <p className="opacity-0 mb-1" style={{ animation: 'fadeIn 0.1s 2.6s forwards' }}>&gt; Authenticating credentials...</p>
+                                <p className="opacity-0 mb-1" style={{ animation: 'fadeIn 0.1s 3.1s forwards' }}>&gt; Checking permissions...</p>
+                                <p className="text-emerald-300 font-bold opacity-0" style={{ animation: 'fadeIn 0.1s 3.6s forwards' }}>&gt; Identity verified: {loginSuccess.name}</p>
                             </div>
                         </div>
-                        <div className="w-full bg-emerald-950/50 rounded-full h-1 mt-6 overflow-hidden border border-emerald-500/10 relative">
-                            <div className="h-full bg-emerald-500 shadow-[0_0_10px_#00bc7d] rounded-full" style={{ animation: 'terminalProgress 3s ease-in-out forwards' }}>
-                                <style>{`
-                                    @keyframes terminalProgress {
-                                        0% { width: 0%; }
-                                        100% { width: 100%; }
-                                    }
-                                `}</style>
+                        {/* Progress Bar Animation */}
+                        <div className="w-full bg-emerald-950/50 rounded-full h-1 mt-6 overflow-hidden border border-emerald-500/10 relative opacity-0" style={{ animation: 'fadeIn 0.3s 3.8s forwards' }}>
+                            <div className="h-full bg-emerald-500 rounded-full relative" style={{ width: '0%', animation: 'terminalProgress 1.2s cubic-bezier(0.4, 0, 0.2, 1) 4.0s forwards' }}>
+                                <div className="absolute top-0 right-0 bottom-0 w-8 bg-white/40 blur-[3px]" style={{ transform: 'translateX(50%)' }}></div>
                             </div>
                         </div>
-                        <p className="text-center text-[10px] text-emerald-500/50 mt-3 uppercase tracking-widest animate-pulse">Initializing Portal Environments</p>
+                        <p className="text-center text-[10px] text-emerald-500/50 mt-3 uppercase tracking-widest opacity-0" style={{ animation: 'fadeIn 0.3s 3.8s forwards, pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite' }}>
+                            Initializing Portal Environments
+                        </p>
                     </div>
+
+                    <style>{`
+                        @keyframes scanSweep {
+                            0% { top: -10px; opacity: 0; }
+                            10% { opacity: 1; }
+                            90% { top: 100%; opacity: 1; }
+                            100% { top: 100%; opacity: 0; }
+                        }
+                        @keyframes shieldActivate {
+                            to { color: #34d399; filter: drop-shadow(0 0 8px rgba(52,211,153,0.6)); }
+                        }
+                        @keyframes bgActivate {
+                            to { background-color: rgba(16, 185, 129, 0.15); border-color: rgba(16, 185, 129, 0.4); }
+                        }
+                        @keyframes cyberReveal {
+                            from { opacity: 0; filter: blur(4px); letter-spacing: 0.3em; }
+                            to { opacity: 1; filter: blur(0px); letter-spacing: 0.1em; }
+                        }
+                        @keyframes fadeIn {
+                            to { opacity: 1; }
+                        }
+                        @keyframes slightUpFade {
+                            to { opacity: 1; transform: translateY(0); }
+                        }
+                        @keyframes terminalProgress {
+                            0% { width: 0%; box-shadow: 0 0 0px #00bc7d; }
+                            95% { width: 100%; box-shadow: 0 0 10px #00bc7d; }
+                            100% { width: 100%; box-shadow: 0 0 20px #34d399; }
+                        }
+                    `}</style>
 
                 </div>
             </div>
