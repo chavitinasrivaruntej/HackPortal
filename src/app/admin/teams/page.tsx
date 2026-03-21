@@ -39,6 +39,19 @@ export default function AdminTeamsPage() {
 
     useEffect(() => {
         fetchTeams();
+
+        const channel = supabase.channel('admin_teams_sync')
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'team_selections' }, () => {
+                fetchTeams();
+            })
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'teams' }, () => {
+                fetchTeams();
+            })
+            .subscribe();
+
+        return () => {
+            supabase.removeChannel(channel);
+        };
     }, []);
 
     const openCreateModal = () => {

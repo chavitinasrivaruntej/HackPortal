@@ -78,8 +78,10 @@ export default function ProblemStatementsPage() {
                 }, (payload) => {
                     if (payload.eventType === 'INSERT') {
                         setHasSelection(true);
+                        fetchProblems();
                     } else if (payload.eventType === 'DELETE') {
                         setHasSelection(false);
+                        fetchProblems();
                     }
                 })
                 .subscribe();

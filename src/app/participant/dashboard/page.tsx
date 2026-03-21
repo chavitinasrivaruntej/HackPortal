@@ -115,6 +115,7 @@ export default function ParticipantDashboard() {
 
         fetchDashboardData();
 
+        // 1. Announcements listener
         const annChannel = supabase.channel('dashboard_ann_preview')
             .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'announcements' }, (payload) => {
                 setLatestAnn(payload.new);
@@ -126,8 +127,41 @@ export default function ParticipantDashboard() {
             })
             .subscribe();
 
-        return () => { supabase.removeChannel(annChannel); };
-    }, [user]);
+        // 2. Team Selections listener (for current team)
+        let selectionChannel: any = null;
+        if (user?.id) {
+            selectionChannel = supabase.channel(`dashboard_selection_${user.id}`)
+                .on('postgres_changes', { 
+                    event: '*', 
+                    schema: 'public', 
+                    table: 'team_selections',
+                    filter: `team_ref_id=eq.${user.id}`
+                }, async (payload: any) => {
+                    if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
+                        const { data } = await supabase.from("problem_statements").select("*").eq("id", payload.new.problem_ref_id).single();
+                        if (data) setSelectedProblem(data);
+                    } else if (payload.eventType === 'DELETE') {
+                        setSelectedProblem(null);
+                    }
+                })
+                .subscribe();
+        }
+
+        // 3. Problem Statements count listener
+        const psChannel = supabase.channel('dashboard_ps_count')
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'problem_statements' }, () => {
+                supabase.from("problem_statements").select('*', { count: 'exact', head: true }).then(({ count }) => {
+                    setStats(prev => ({ ...prev, problems: count || 0 }));
+                });
+            })
+            .subscribe();
+
+        return () => { 
+            supabase.removeChannel(annChannel);
+            if (selectionChannel) supabase.removeChannel(selectionChannel);
+            supabase.removeChannel(psChannel);
+        };
+    }, [user?.id]);
 
     const getStatusInfo = () => {
         switch (user?.status) {
