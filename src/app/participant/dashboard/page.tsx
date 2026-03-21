@@ -156,12 +156,21 @@ export default function ParticipantDashboard() {
             })
             .subscribe();
 
+        // 4. Issues sync listener (for current participant)
+        const issuesChannel = supabase.channel('dashboard_issues_sync')
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'issues' }, () => {
+                fetchIssues();
+            })
+            .subscribe();
+
+
         return () => { 
             supabase.removeChannel(annChannel);
             if (selectionChannel) supabase.removeChannel(selectionChannel);
             supabase.removeChannel(psChannel);
+            supabase.removeChannel(issuesChannel);
         };
-    }, [user?.id]);
+    }, [user?.id, fetchIssues]);
 
     const getStatusInfo = () => {
         switch (user?.status) {

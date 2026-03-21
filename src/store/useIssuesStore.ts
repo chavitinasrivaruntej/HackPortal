@@ -24,6 +24,7 @@ interface IssuesState {
     fetchIssues: () => Promise<void>;
     addIssue: (issueData: Omit<Issue, 'id' | 'issue_id' | 'timestamp' | 'status'>) => Promise<void>;
     updateIssueStatus: (id: string, status: IssueStatus) => Promise<void>;
+    deleteIssue: (id: string) => Promise<void>;
 }
 
 export const useIssuesStore = create<IssuesState>()((set, get) => ({
@@ -89,6 +90,19 @@ export const useIssuesStore = create<IssuesState>()((set, get) => ({
         if (!error) {
             set((state) => ({
                 issues: state.issues.map((i) => i.id === id ? { ...i, status } : i)
+            }));
+        }
+    },
+
+    deleteIssue: async (id) => {
+        const { error } = await supabase
+            .from('issues')
+            .delete()
+            .eq('id', id);
+
+        if (!error) {
+            set((state) => ({
+                issues: state.issues.filter((i) => i.id !== id)
             }));
         }
     }

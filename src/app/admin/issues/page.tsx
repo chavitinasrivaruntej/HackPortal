@@ -2,11 +2,13 @@
 
 import { useState, useEffect } from "react";
 import { useIssuesStore, Issue, IssueStatus } from "@/store/useIssuesStore";
-import { Search, Filter, AlertCircle, Clock, CheckCircle2, XCircle, ChevronRight, X, User } from "lucide-react";
+import { Search, Filter, AlertCircle, Clock, CheckCircle2, XCircle, ChevronRight, X, User, Trash2 } from "lucide-react";
+import { supabase } from "@/lib/supabase";
 
 export default function AdminIssuesPage() {
     const issues = useIssuesStore((state) => state.issues);
     const updateIssueStatus = useIssuesStore((state) => state.updateIssueStatus);
+    const deleteIssue = useIssuesStore((state) => state.deleteIssue);
     const fetchIssues = useIssuesStore((state) => state.fetchIssues);
     
     const [searchTerm, setSearchTerm] = useState("");
@@ -15,7 +17,18 @@ export default function AdminIssuesPage() {
 
     useEffect(() => {
         fetchIssues();
+
+        const channel = supabase.channel('admin_issues_sync')
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'issues' }, () => {
+                fetchIssues();
+            })
+            .subscribe();
+
+        return () => {
+            supabase.removeChannel(channel);
+        };
     }, [fetchIssues]);
+
 
     const filteredIssues = issues.filter(issue => {
         const matchesSearch = issue.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
@@ -207,6 +220,17 @@ export default function AdminIssuesPage() {
                             <p className="text-xs font-medium text-muted-foreground hidden sm:block">Reported at {new Date(selectedIssue.timestamp).toLocaleString()}</p>
                             
                             <div className="flex items-center gap-2 w-full sm:w-auto">
+                                <button 
+                                    onClick={() => {
+                                        if (confirm("Are you sure you want to permanently delete this issue?")) {
+                                            deleteIssue(selectedIssue.id);
+                                            setSelectedIssue(null);
+                                        }
+                                    }}
+                                    className="flex-1 sm:flex-none px-4 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-600 font-bold text-sm rounded-xl transition-colors border border-red-500/20 flex items-center justify-center gap-1.5"
+                                >
+                                    <Trash2 className="w-4 h-4" /> Delete
+                                </button>
                                 {selectedIssue.status !== "In Progress" && (
                                     <button 
                                         onClick={() => handleStatusUpdate(selectedIssue.id, "In Progress")}
