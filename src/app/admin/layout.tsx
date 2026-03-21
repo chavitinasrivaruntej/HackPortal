@@ -3,6 +3,7 @@
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { LayoutDashboard, Users, FileText, BarChart3, UserMinus, MessageSquare } from "lucide-react";
+import { IssueNotificationListener } from "@/components/IssueNotificationListener";
 
 const adminMenu = [
     { name: "Dashboard", href: "/admin/dashboard", icon: LayoutDashboard },
@@ -16,6 +17,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     return (
         <ProtectedRoute allowedRoles={["admin"]}>
             <DashboardLayout menuItems={adminMenu} title="Admin Portal">
+                <IssueNotificationListener />
                 {children}
             </DashboardLayout>
         </ProtectedRoute>

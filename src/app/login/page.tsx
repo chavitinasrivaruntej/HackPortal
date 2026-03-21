@@ -167,7 +167,7 @@ export default function LoginPage() {
                                 <div className="absolute inset-0 bg-gradient-to-b from-emerald-500/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
                                 {mounted ? (
                                     <Image
-                                        src={theme === 'light' ? "/logo-lightmode.png" : "/logo-darkmode.png"}
+                                        src="/logo-darkmode.png"
                                         alt="CTF JNTUK"
                                         width={48}
                                         height={48}

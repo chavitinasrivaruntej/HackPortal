@@ -143,75 +143,78 @@ export default function ParticipantDashboard() {
     return (
         <div className="space-y-6  pb-12">
 
-            {/* HERO SECTION */}
-            <div className="relative bg-[#030712] border border-emerald-500/20 rounded-[32px] overflow-hidden shadow-[0_0_50px_rgba(0,188,125,0.05)] ring-1 ring-white/5">
-                {/* Cyber Event Background Layer */}
-                <div className="absolute inset-0 bg-[linear-gradient(to_right,#00bc7d08_1px,transparent_1px),linear-gradient(to_bottom,#00bc7d08_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_80%_60%_at_50%_0%,#000_70%,transparent_100%)] pointer-events-none"></div>
-                
-                <div className="absolute top-0 right-1/4 w-[500px] h-[500px] bg-emerald-500/10 blur-[120px] rounded-full pointer-events-none mix-blend-screen animate-pulse"></div>
-                <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-emerald-900/20 blur-[100px] rounded-full pointer-events-none mix-blend-screen"></div>
+            {/* HERO SECTION WITH 3D INTERACTION */}
+            <div className="perspective-2000">
+                <div className="hero-card-animate preserve-3d relative bg-[#030712] border border-emerald-500/20 rounded-[32px] overflow-hidden shadow-[0_0_50px_rgba(0,188,125,0.05)] ring-1 ring-white/5 group/hero">
+                    {/* Cyber Event Background Layer */}
+                    <div className="absolute inset-0 bg-[linear-gradient(to_right,#00bc7d08_1px,transparent_1px),linear-gradient(to_bottom,#00bc7d08_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_80%_60%_at_50%_0%,#000_70%,transparent_100%)] pointer-events-none"></div>
+                    
+                    <div className="absolute top-0 right-1/4 w-[500px] h-[500px] bg-emerald-500/10 blur-[120px] rounded-full pointer-events-none mix-blend-screen animate-pulse"></div>
+                    <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-emerald-900/20 blur-[100px] rounded-full pointer-events-none mix-blend-screen"></div>
 
-                <div className="relative p-8 sm:p-12 z-10">
-                    <div className="grid grid-cols-1 lg:grid-cols-[1fr_auto] gap-8 items-end">
-                        
-                        {/* LEFT COLUMN — Content + Status Cards */}
-                        <div className="flex flex-col gap-6">
-                            {/* Badge */}
-                            <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-emerald-500/10 backdrop-blur-md rounded-full border border-emerald-500/20 text-[10px] font-mono font-bold text-emerald-400 uppercase tracking-widest shadow-[0_0_15px_rgba(0,188,125,0.1)] w-fit">
-                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                                Secure Environment
-                            </div>
-
-                            {/* Heading + Team ID */}
-                            <div className="space-y-3">
-                                <h1 className="text-4xl sm:text-5xl md:text-6xl font-black tracking-tight text-white/90 leading-tight">
-                                    Welcome, <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-emerald-600">{user?.name}</span>
-                                </h1>
-                                <div className="inline-flex items-center gap-2.5 px-3 py-1.5 bg-black/40 rounded-lg border border-white/10 text-sm font-mono text-emerald-100/70 shadow-inner">
-                                    <span className="uppercase text-[10px] font-bold text-emerald-500 tracking-wider">TEAM ID //</span>
-                                    <span className="tracking-wider">{user?.display_id}</span>
-                                </div>
-                            </div>
-
-                            {/* Status Cards — vertical stack, full width */}
-                            <div className="flex flex-col gap-3 w-full max-w-lg">
-                                {/* Current Round Card */}
-                                <div className="bg-black/30 rounded-2xl border border-emerald-500/20 backdrop-blur-sm px-5 py-4 flex items-center gap-5">
-                                    <div className="p-2 bg-emerald-500/10 rounded-xl">
-                                        <Zap className="w-4 h-4 text-emerald-400" />
-                                    </div>
-                                    <div className="flex-1 min-w-0">
-                                        <p className="text-emerald-500/60 text-[10px] font-mono uppercase tracking-widest mb-0.5">Current Round</p>
-                                        <p className="text-emerald-400 text-base font-black uppercase tracking-wide">{currentRound}</p>
-                                    </div>
-                                    <span className="text-[10px] font-mono text-white/20 shrink-0">Admin controlled</span>
+                    <div className="relative p-8 sm:p-12 z-10">
+                        <div className="grid grid-cols-1 lg:grid-cols-[1fr_auto] gap-10 items-end">
+                            
+                            {/* LEFT COLUMN — Content + Status Cards */}
+                            <div className="flex flex-col gap-8 content-lift">
+                                {/* Badge */}
+                                <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-emerald-500/10 backdrop-blur-md rounded-full border border-emerald-500/20 text-[10px] font-mono font-bold text-emerald-400 uppercase tracking-widest shadow-[0_0_15px_rgba(0,188,125,0.1)] w-fit">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                                    Secure Environment
                                 </div>
 
-                                {/* Team Status Card */}
-                                <div className="bg-black/30 rounded-2xl border border-white/5 backdrop-blur-sm px-5 py-4 flex items-center gap-5">
-                                    <div className="p-2 bg-white/5 rounded-xl">
-                                        <Shield className="w-4 h-4 text-white/40" />
+                                {/* Heading Structure Update: Welcome + Team Name */}
+                                <div className="space-y-2">
+                                    <p className="text-lg sm:text-xl font-black text-emerald-500/60 uppercase tracking-[0.4em] ml-1">Welcome,</p>
+                                    <h1 className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-black tracking-tighter text-white leading-[0.85] uppercase drop-shadow-2xl whitespace-nowrap">
+                                        {user?.name}
+                                    </h1>
+                                    <div className="inline-flex items-center gap-2.5 px-3 py-1.5 bg-black/40 rounded-lg border border-white/10 text-sm font-mono text-emerald-100/70 shadow-inner mt-4">
+                                        <span className="uppercase text-[10px] font-bold text-emerald-500 tracking-wider">TEAM ID //</span>
+                                        <span className="tracking-wider">{user?.display_id}</span>
                                     </div>
-                                    <div className="flex-1 min-w-0">
-                                        <p className="text-white/40 text-[10px] font-mono uppercase tracking-widest mb-0.5">Team Status</p>
-                                        <div className="flex items-center gap-2">
-                                            <div className={`w-2 h-2 rounded-full shrink-0 animate-pulse ${statusInfo.dot}`} />
-                                            <span className={`text-base font-black uppercase tracking-wide ${statusInfo.color}`}>{statusInfo.text}</span>
+                                </div>
+
+                                {/* Status Cards — vertical stack */}
+                                <div className="flex flex-col gap-4 w-full max-w-lg">
+                                    {/* Current Round Card */}
+                                    <div className="bg-black/30 rounded-2xl border border-emerald-500/20 backdrop-blur-sm px-5 py-4 flex items-center gap-5 group/status transition-colors hover:bg-emerald-500/5">
+                                        <div className="p-2 bg-emerald-500/10 rounded-xl">
+                                            <Zap className="w-4 h-4 text-emerald-400" />
                                         </div>
+                                        <div className="flex-1 min-w-0">
+                                            <p className="text-emerald-500/60 text-[10px] font-mono uppercase tracking-widest mb-0.5">Current Round</p>
+                                            <p className="text-emerald-400 text-base font-black uppercase tracking-wide">{currentRound}</p>
+                                        </div>
+                                        <span className="text-[10px] font-mono text-white/90 shrink-0 opacity-40 group-hover/status:opacity-100 transition-opacity">Admin controlled</span>
                                     </div>
-                                    <span className="text-[10px] font-mono text-white/20 shrink-0 max-w-[120px] text-right leading-relaxed">{statusInfo.msg}</span>
+
+                                    {/* Team Status Card */}
+                                    <div className="bg-black/30 rounded-2xl border border-white/5 backdrop-blur-sm px-5 py-4 flex items-center gap-5 group/status transition-colors hover:bg-white/5">
+                                        <div className="p-2 bg-white/5 rounded-xl">
+                                            <Shield className="w-4 h-4 text-white/40" />
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <p className="text-white/40 text-[10px] font-mono uppercase tracking-widest mb-0.5">Team Status</p>
+                                            <div className="flex items-center gap-2">
+                                                <div className={`w-2 h-2 rounded-full shrink-0 animate-pulse ${statusInfo.dot}`} />
+                                                <span className={`text-base font-black uppercase tracking-wide ${statusInfo.color}`}>{statusInfo.text}</span>
+                                            </div>
+                                        </div>
+                                        <span className="text-[10px] font-mono text-white/90 shrink-0 max-w-[120px] text-right leading-relaxed opacity-60 group-hover/status:opacity-100 transition-opacity">{statusInfo.msg}</span>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
 
-                        {/* RIGHT COLUMN — Action Buttons anchored bottom */}
-                        <div className="flex flex-col items-end justify-end gap-3 self-end pb-0.5">
-                            <Link href="/participant/problems" className="px-8 py-4 bg-emerald-500 hover:bg-emerald-400 text-black font-black rounded-2xl transition-all shadow-[0_0_20px_rgba(16,185,129,0.3)] hover:shadow-[0_0_40px_rgba(16,185,129,0.5)] hover:-translate-y-0.5 uppercase tracking-wider text-sm flex items-center gap-2 w-full sm:w-auto justify-center whitespace-nowrap">
-                                Access Problems
-                            </Link>
-                            <Link href="/participant/team" className="px-8 py-4 bg-white/5 hover:bg-white/10 text-white font-bold rounded-2xl transition-all backdrop-blur-xl border border-white/10 hover:border-white/20 uppercase tracking-wider text-sm w-full sm:w-auto text-center whitespace-nowrap">
-                                View Roster
-                            </Link>
+                            {/* RIGHT COLUMN — Action Buttons anchored bottom */}
+                            <div className="flex flex-col items-end justify-end gap-3 self-end pb-0.5 content-lift">
+                                <Link href="/participant/problems" className="px-10 py-4 bg-emerald-500 hover:bg-emerald-400 text-black font-black rounded-2xl transition-all shadow-[0_0_20px_rgba(16,185,129,0.3)] hover:shadow-[0_0_40px_rgba(16,185,129,0.5)] hover:-translate-y-1 uppercase tracking-wider text-sm flex items-center justify-center gap-2 w-full sm:w-[220px] whitespace-nowrap">
+                                    Access Problems
+                                </Link>
+                                <Link href="/participant/team" className="px-10 py-4 bg-white/5 hover:bg-white/10 text-white font-black rounded-2xl transition-all backdrop-blur-xl border border-white/10 hover:border-white/20 hover:-translate-y-1 uppercase tracking-wider text-sm w-full sm:w-[220px] text-center whitespace-nowrap flex items-center justify-center">
+                                    View Roster
+                                </Link>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -428,6 +431,45 @@ export default function ParticipantDashboard() {
                     </div>
                 </div>
             )}
+
+            {/* Inject Global Animation Styles */}
+            <style jsx global>{`
+                .perspective-2000 {
+                    perspective: 2000px;
+                }
+                .preserve-3d {
+                    transform-style: preserve-3d;
+                }
+                .hero-card-animate {
+                    transition: transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1), background 0.6s ease-out;
+                    will-change: transform;
+                }
+                .hero-card-animate:hover {
+                    transform: rotate3d(0.5, 1, 0, 4deg) translateY(-2px);
+                    background: linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, #030712 50%);
+                    border-color: rgba(16, 185, 129, 0.4);
+                }
+                .content-lift {
+                    transition: transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+                    will-change: transform;
+                }
+                .hero-card-animate:hover .content-lift {
+                    transform: translate3d(0, 0, 30px);
+                }
+                @keyframes scan {
+                    0% { top: 0; opacity: 0; }
+                    10% { opacity: 1; }
+                    90% { opacity: 1; }
+                    100% { top: 100%; opacity: 0; }
+                }
+                @keyframes progress {
+                    0% { width: 0%; }
+                    20% { width: 30%; }
+                    40% { width: 45%; }
+                    60% { width: 80%; }
+                    100% { width: 100%; }
+                }
+            `}</style>
         </div>
     );
 }

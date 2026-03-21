@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/ThemeProvider";
+import CursorTrail from "@/components/CursorTrail";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -22,9 +23,12 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body className={`${inter.className} min-h-screen antialiased flex flex-col`}>
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
+          <CursorTrail />
           {children}
         </ThemeProvider>
       </body>
     </html>
   );
 }
+
+

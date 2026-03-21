@@ -18,7 +18,7 @@
   --color-muted-foreground: var(--muted-foreground);
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
-  
+
   --radius-sm: 0.5rem;
   --radius-md: 0.75rem;
   --radius-lg: 1rem;
@@ -39,7 +39,8 @@
   --input: #e2e8f0;
   --primary: #0f172a;
   --primary-foreground: #f8fafc;
-  --accent: #00bc7d; /* Green */
+  --accent: #00bc7d;
+  /* Green */
   --accent-foreground: #ffffff;
   --muted: #f1f5f9;
   --muted-foreground: #64748b;
@@ -48,7 +49,8 @@
 }
 
 .dark {
-  --background: #020617; /* Slate-950 */
+  --background: #020617;
+  /* Slate-950 */
   --foreground: #f8fafc;
   --card: #0f172a;
   --card-foreground: #f8fafc;
@@ -56,7 +58,8 @@
   --input: #1e293b;
   --primary: #f8fafc;
   --primary-foreground: #020617;
-  --accent: #00bc7d; /* Green */
+  --accent: #00bc7d;
+  /* Green */
   --accent-foreground: #ffffff;
   --muted: #1e293b;
   --muted-foreground: #94a3b8;
@@ -65,14 +68,32 @@
 }
 
 @layer base {
+
   *,
   ::before,
   ::after {
     border-color: var(--color-border);
   }
+
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
+  }
+
+  body, a, button, [role="button"], .cursor-pointer {
+    cursor: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><path fill="%23FFF" stroke="%23000" stroke-width="1.5" d="M5.5 3.21V20.8c0 .45.54.67.85.35l4.86-4.86a.5.5 0 0 1 .35-.15h6.87a.5.5 0 0 0 .35-.85L6.35 2.85a.5.5 0 0 0-.85.35Z"></path></svg>'), auto;
     @apply antialiased transition-colors duration-200;
   }
+}
+
+.circle {
+  height: 16px;
+  width: 16px;
+  border-radius: 50%;
+  position: fixed;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  z-index: 9999;
+  opacity: 0.7;
 }
