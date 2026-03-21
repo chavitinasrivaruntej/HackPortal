@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils";
 import { useTheme } from "next-themes";
 import { AnnouncementsDrawer } from "./AnnouncementsDrawer";
 import Image from "next/image";
+import BorderGlow from "./BorderGlow";
 
 export interface MenuItem {
     name: string;
@@ -57,6 +58,28 @@ export function DashboardLayout({
         }
         return () => clearTimeout(timeoutId);
     }, [isNavigating]);
+
+    // Global Border Glow Tracker Setup
+    useEffect(() => {
+        let ticking = false;
+        const handleMouseMove = (e: MouseEvent) => {
+            if (!ticking) {
+                window.requestAnimationFrame(() => {
+                    const cards = document.querySelectorAll(".bg-card");
+                    for (let i = 0; i < cards.length; i++) {
+                        const card = cards[i] as HTMLElement;
+                        const rect = card.getBoundingClientRect();
+                        card.style.setProperty("--mouse-x", `${e.clientX - rect.left}px`);
+                        card.style.setProperty("--mouse-y", `${e.clientY - rect.top}px`);
+                    }
+                    ticking = false;
+                });
+                ticking = true;
+            }
+        };
+        window.addEventListener("mousemove", handleMouseMove);
+        return () => window.removeEventListener("mousemove", handleMouseMove);
+    }, []);
 
     return (
         <div className="min-h-screen flex bg-background">
@@ -116,11 +139,11 @@ export function DashboardLayout({
                                     className={cn(
                                         "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all font-medium",
                                         isActive
-                                            ? "bg-accent/10 text-accent font-semibold"
+                                            ? "bg-emerald-500/10 text-emerald-500 font-bold"
                                             : "text-muted-foreground hover:bg-muted hover:text-foreground"
                                     )}
                                 >
-                                <item.icon className={cn("w-5 h-5", isActive ? "text-accent" : "opacity-70")} />
+                                <item.icon className={cn("w-5 h-5", isActive ? "text-emerald-500" : "opacity-70")} />
                                 {item.name}
                             </Link>
                         );
@@ -147,7 +170,19 @@ export function DashboardLayout({
             </aside>
 
             {/* Main Content */}
-            <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
+            <BorderGlow
+                as="main"
+                className="flex-1 flex flex-col min-w-0 overflow-hidden"
+                edgeSensitivity={30}
+                glowColor="170 80 60"
+                backgroundColor="transparent"
+                borderRadius={0}
+                glowRadius={30}
+                glowIntensity={0.7}
+                coneSpread={25}
+                animated
+                colors={['#00d9a5']}
+            >
                 {/* Top Header */}
                 <header className="h-16 flex items-center justify-between px-4 sm:px-6 lg:px-8 bg-card border-b border-border sticky top-0 z-30">
                     <div className="flex items-center w-1/3">
@@ -184,7 +219,7 @@ export function DashboardLayout({
                         {children}
                     </div>
                 </div>
-            </main>
+            </BorderGlow>
 
             {/* Global Tab Navigation Loading Overlay Removed for Instant Transitions */}
         </div >

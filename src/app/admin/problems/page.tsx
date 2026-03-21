@@ -142,7 +142,7 @@ export default function AdminProblemsPage() {
                         <div className="flex flex-col md:flex-row justify-between items-start gap-6">
                             <div className="flex-1 w-full relative">
                                 <div className="flex items-center gap-3 mb-3">
-                                    <span className="bg-accent/10 text-accent px-2.5 py-1 rounded-md text-xs font-bold tracking-wider uppercase shrink-0">
+                                    <span className="bg-emerald-500/10 text-emerald-500 px-2.5 py-1 rounded-md text-xs font-bold tracking-wider uppercase shrink-0">
                                         {p.domain}
                                     </span>
                                     <h3 className="text-xl font-bold truncate pr-12">{p.title}</h3>

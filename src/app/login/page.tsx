@@ -7,6 +7,7 @@ import { supabase } from "@/lib/supabase";
 import { Loader2, Lock, User, Terminal, ScanLine, ShieldCheck } from "lucide-react";
 import Image from "next/image";
 import { useTheme } from "next-themes";
+import Aurora from "@/components/Aurora";
 
 export default function LoginPage() {
     const [idValue, setIdValue] = useState("");
@@ -94,8 +95,19 @@ export default function LoginPage() {
     if (loginSuccess) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-[#030712] relative overflow-hidden font-mono">
+                {/* Aurora Background */}
+                <div className="absolute inset-0 z-0">
+                    <Aurora 
+                        colorStops={["#7cff67", "#00ff40", "#7a5dee"]} 
+                        speed={1.0} 
+                        amplitude={2.0}
+                    />
+                </div>
+                {/* Dark overlay for contrast */}
+                <div className="absolute inset-0 bg-[#030712]/30 z-0 pointer-events-none" />
+                
                 {/* Cyber grid background */}
-                <div className="absolute inset-0 bg-[linear-gradient(to_right,#00bc7d05_1px,transparent_1px),linear-gradient(to_bottom,#00bc7d05_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_50%,#000_70%,transparent_100%)] pointer-events-none"></div>
+                <div className="absolute inset-0 bg-[linear-gradient(to_right,#00bc7d05_1px,transparent_1px),linear-gradient(to_bottom,#00bc7d05_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_50%,#000_70%,transparent_100%)] pointer-events-none z-0"></div>
                 
                 <div className="relative z-10 flex flex-col items-center animate-in zoom-in-95 fade-in duration-700 w-full max-w-lg p-8">
                     
@@ -180,14 +192,20 @@ export default function LoginPage() {
 
     return (
         <div className="min-h-screen flex items-center justify-center relative overflow-hidden bg-[#030712] text-slate-300">
-            {/* Dark mode only cyber background layer */}
-            <div className="absolute inset-0 bg-[#030712]">
-                {/* Horizontal & Vertical grid */}
-                <div className="absolute inset-0 bg-[linear-gradient(to_right,#00bc7d10_1px,transparent_1px),linear-gradient(to_bottom,#00bc7d10_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] "></div>
-                {/* Ambient glow blobs */}
-                <div className="absolute top-1/4 left-1/4 w-[600px] h-[600px] bg-emerald-900/20 rounded-full blur-[120px] mix-blend-screen animate-pulse pointer-events-none" />
-                <div className="absolute bottom-1/4 right-1/4 w-[500px] h-[500px] bg-emerald-800/10 rounded-full blur-[100px] mix-blend-screen pointer-events-none" />
+            {/* Aurora Background */}
+            <div className="absolute inset-0 z-0">
+                <Aurora 
+                    colorStops={["#7cff67", "#00ff40", "#7a5dee"]} 
+                    speed={0.5} 
+                    amplitude={1.2}
+                />
             </div>
+            
+            {/* Dark overlay for contrast */}
+            <div className="absolute inset-0 bg-[#030712]/30 z-0 pointer-events-none" />
+
+            {/* Horizontal & Vertical grid overlaid on Aurora */}
+            <div className="absolute inset-0 bg-[linear-gradient(to_right,#00bc7d10_1px,transparent_1px),linear-gradient(to_bottom,#00bc7d10_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] z-0 pointer-events-none"></div>
 
             <div className="relative w-full max-w-[420px] z-10 px-4">
                 <div className="bg-black/40 backdrop-blur-2xl border border-white/10 shadow-[0_0_80px_rgba(0,188,125,0.07)] rounded-[24px] overflow-hidden transition-all duration-500 ring-1 ring-white/5">

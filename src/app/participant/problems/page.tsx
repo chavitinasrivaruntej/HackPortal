@@ -170,7 +170,7 @@ export default function ProblemStatementsPage() {
                             <div className="flex flex-col lg:flex-row gap-6 items-start lg:items-center justify-between">
 
                                 <div className="flex-1 space-y-3">
-                                    <span className="inline-block px-2.5 py-1 bg-muted text-muted-foreground text-xs font-bold uppercase tracking-wider rounded-md">
+                                    <span className="inline-block px-2.5 py-1 bg-emerald-500/10 text-emerald-500 text-xs font-bold uppercase tracking-wider rounded-md">
                                         {prob.domain}
                                     </span>
                                     <h3 className="text-xl font-bold">{prob.title}</h3>
@@ -212,7 +212,7 @@ export default function ProblemStatementsPage() {
                         <div className="p-6 border-b border-border">
                             <div className="flex justify-between items-start">
                                 <div>
-                                    <span className="inline-block px-2.5 py-1 bg-accent/10 text-accent text-xs font-bold rounded-md mb-2">
+                                    <span className="inline-block px-2.5 py-1 bg-emerald-500/10 text-emerald-500 text-xs font-bold uppercase tracking-wider rounded-md mb-2">
                                         {selectedProblem.domain}
                                     </span>
                                     <h2 className="text-2xl font-bold">{selectedProblem.title}</h2>
