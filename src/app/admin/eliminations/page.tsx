@@ -58,10 +58,6 @@ export default function AdminEliminationsPage() {
 
                         <div className="space-y-2 mb-6 text-sm">
                             <div className="flex justify-between">
-                                <span className="text-muted-foreground">College</span>
-                                <span className="font-medium text-right line-clamp-1 max-w-[150px]">{team.college_name || "N/A"}</span>
-                            </div>
-                            <div className="flex justify-between">
                                 <span className="text-muted-foreground">Dept</span>
                                 <span className="font-medium">{team.department || "N/A"}</span>
                             </div>

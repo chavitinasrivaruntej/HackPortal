@@ -44,7 +44,6 @@ CREATE TABLE public.teams (
     team_id TEXT UNIQUE NOT NULL,
     password TEXT NOT NULL,
     team_name TEXT NOT NULL,
-    college_name TEXT,
     department TEXT,
     year TEXT,
     status TEXT DEFAULT 'Active', -- Active, Shortlisted, Eliminated, Frozen
@@ -53,11 +52,11 @@ CREATE TABLE public.teams (
 );
 
 -- Insert Dummy Teams
-INSERT INTO public.teams (team_id, password, team_name, college_name, department, year) VALUES 
-('TEAM001', 'team001', 'Quantum Coders', 'Tech University', 'Computer Science', '3rd Year'),
-('TEAM002', 'team002', 'Byte Pandas', 'Engineering College', 'Information Tech', '2nd Year'),
-('TEAM003', 'team003', 'Neural Knights', 'State Institute', 'AI & Data Science', '4th Year'),
-('TEAM004', 'team004', 'Cyber Hawks', 'City College', 'Cybersecurity', '3rd Year');
+INSERT INTO public.teams (team_id, password, team_name, department, year) VALUES 
+('TEAM001', 'team001', 'Quantum Coders', 'Computer Science', '3rd Year'),
+('TEAM002', 'team002', 'Byte Pandas', 'Information Tech', '2nd Year'),
+('TEAM003', 'team003', 'Neural Knights', 'AI & Data Science', '4th Year'),
+('TEAM004', 'team004', 'Cyber Hawks', 'Cybersecurity', '3rd Year');
 
 
 -- 4. team_members table

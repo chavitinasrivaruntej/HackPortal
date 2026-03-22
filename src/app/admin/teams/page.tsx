@@ -18,7 +18,7 @@ export default function AdminTeamsPage() {
     const [teamToEliminate, setTeamToEliminate] = useState<{ id: string, name: string } | null>(null);
 
     // Form State
-    const defaultTeam = { team_id: "", password: "", team_name: "", college_name: "", status: "Active" };
+    const defaultTeam = { team_id: "", password: "", team_name: "", status: "Active" };
     const defaultMembers = [
         { member_role: "Team Lead", name: "", email: "", phone: "", gender: "Male" },
         { member_role: "Member 2", name: "", email: "", phone: "", gender: "Male" },
@@ -71,7 +71,6 @@ export default function AdminTeamsPage() {
             team_id: team.team_id,
             password: team.password,
             team_name: team.team_name,
-            college_name: team.college_name || "",
             status: team.status
         });
 
@@ -238,7 +237,7 @@ export default function AdminTeamsPage() {
                         <thead className="bg-muted/70 text-muted-foreground uppercase text-xs font-bold tracking-wider whitespace-nowrap">
                             <tr>
                                 <th className="px-5 py-4">Credentials</th>
-                                <th className="px-5 py-4">Team Name & College</th>
+                                <th className="px-5 py-4">Team Name</th>
                                 <th className="px-5 py-4">Status</th>
                                 <th className="px-5 py-4 max-w-xs">Selected Problem</th>
                                 <th className="px-5 py-4 text-right">Actions</th>
@@ -255,7 +254,6 @@ export default function AdminTeamsPage() {
                                     </td>
                                     <td className="px-5 py-4 whitespace-nowrap">
                                         <div className="font-bold text-[15px]">{team.team_name}</div>
-                                        <div className="text-xs text-muted-foreground mt-0.5">{team.college_name}</div>
                                     </td>
                                     <td className="px-5 py-4 whitespace-nowrap">
                                         <span className={`px-3 py-1.5 rounded-full text-xs font-bold tracking-wide ${getStatusColor(team.status)}`}>
@@ -360,10 +358,7 @@ export default function AdminTeamsPage() {
 
                                 </div>
 
-                                <div>
-                                    <label className="block text-xs font-bold text-muted-foreground uppercase mb-1.5">College / Institution</label>
-                                    <input type="text" value={teamData.college_name} placeholder="MIT University" onChange={e => setTeamData({ ...teamData, college_name: e.target.value })} className="w-full p-2.5 bg-background border border-border rounded-lg text-sm focus:ring-2 focus:ring-accent" />
-                                </div>
+
                             </div>
 
                             {/* SECTION 2: Members */}
@@ -386,10 +381,12 @@ export default function AdminTeamsPage() {
                                                     <label className="block text-[11px] font-semibold text-muted-foreground uppercase mb-1">Full Name</label>
                                                     <input required={i <= 1} type="text" value={member.name} placeholder={i === 0 ? "Jane Doe" : ""} onChange={e => updateMember(i, 'name', e.target.value)} className="w-full p-2 bg-background border border-border rounded-md text-sm focus:ring-1 focus:ring-accent" />
                                                 </div>
-                                                <div>
-                                                    <label className="block text-[11px] font-semibold text-muted-foreground uppercase mb-1">Email</label>
-                                                    <input type="email" value={member.email} placeholder="jane@example.com" onChange={e => updateMember(i, 'email', e.target.value)} className="w-full p-2 bg-background border border-border rounded-md text-sm focus:ring-1 focus:ring-accent" />
-                                                </div>
+                                                {i === 0 && (
+                                                    <div>
+                                                        <label className="block text-[11px] font-semibold text-muted-foreground uppercase mb-1">Email</label>
+                                                        <input type="email" value={member.email} placeholder="jane@example.com" onChange={e => updateMember(i, 'email', e.target.value)} className="w-full p-2 bg-background border border-border rounded-md text-sm focus:ring-1 focus:ring-accent" />
+                                                    </div>
+                                                )}
                                                 <div className="grid grid-cols-2 gap-2">
                                                     <div>
                                                         <label className="block text-[11px] font-semibold text-muted-foreground uppercase mb-1">Phone</label>

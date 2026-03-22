@@ -44,7 +44,6 @@ CREATE TABLE public.teams (
     team_id TEXT UNIQUE NOT NULL,
     password TEXT NOT NULL,
     team_name TEXT NOT NULL,
-    college_name TEXT,
     department TEXT,
     year TEXT,
     status TEXT DEFAULT 'Active',
@@ -93,11 +92,11 @@ INSERT INTO public.problem_statements (title, domain, short_summary, full_descri
 ('Dynamic Traffic Routing', 'Smart Mobility', 'Optimize city traffic lights.', 'Design a system that uses mock live camera feeds to adjust traffic light timings.', 'Simulate API for camera feeds.', 'Reinforcement learning preferred.', 'Show visual dashboard of city map.'),
 ('Personalized Learning Path', 'Education Technology', 'Adaptive quiz platform.', 'Build a student portal that adjusts question difficulty based on previous answers.', 'Web application.', 'Item response theory.', 'Include teacher dashboard for analytics.');
 
-INSERT INTO public.teams (team_id, password, team_name, college_name, department, year) VALUES 
-('TEAM001', 'team001', 'Quantum Coders', 'Tech University', 'Computer Science', '3rd Year'),
-('TEAM002', 'team002', 'Byte Pandas', 'Engineering College', 'Information Tech', '2nd Year'),
-('TEAM003', 'team003', 'Neural Knights', 'State Institute', 'AI & Data Science', '4th Year'),
-('TEAM004', 'team004', 'Cyber Hawks', 'City College', 'Cybersecurity', '3rd Year');
+INSERT INTO public.teams (team_id, password, team_name, department, year) VALUES 
+('TEAM001', 'team001', 'Quantum Coders', 'Computer Science', '3rd Year'),
+('TEAM002', 'team002', 'Byte Pandas', 'Information Tech', '2nd Year'),
+('TEAM003', 'team003', 'Neural Knights', 'AI & Data Science', '4th Year'),
+('TEAM004', 'team004', 'Cyber Hawks', 'Cybersecurity', '3rd Year');
 
 DO $$
 DECLARE
