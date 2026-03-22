@@ -33,8 +33,8 @@ export default function LoginPage() {
             const { data: adminData } = await supabase
                 .from("admins")
                 .select("*")
-                .eq("admin_id", idValue)
-                .eq("password", password)
+                .eq("admin_id", idValue.trim())
+                .eq("password", password.trim())
                 .maybeSingle();
 
             if (adminData) {
@@ -53,8 +53,8 @@ export default function LoginPage() {
             const { data: teamData } = await supabase
                 .from("teams")
                 .select("*")
-                .eq("team_id", idValue)
-                .eq("password", password)
+                .eq("team_id", idValue.trim())
+                .eq("password", password.trim())
                 .maybeSingle();
 
             if (teamData) {
