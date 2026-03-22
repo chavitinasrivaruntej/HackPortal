@@ -11,8 +11,10 @@ CREATE TABLE public.admins (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- Insert Default Admin
-INSERT INTO public.admins (admin_id, password) VALUES ('admin@1234', 'admin@1234');
+INSERT INTO public.admins (admin_id, password) VALUES 
+('varun@admin', 'varuntej27*'),
+('sreeja@admin', 'Sree@2006'),
+('hemanth@admin', 'phani2007');
 
 -- 2. problem_statements table
 CREATE TABLE public.problem_statements (

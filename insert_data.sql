@@ -2,7 +2,10 @@
 TRUNCATE TABLE public.admins, public.problem_statements, public.teams, public.team_members, public.team_selections, public.announcements, public.activity_logs CASCADE;
 
 -- Insert Default Admin
-INSERT INTO public.admins (admin_id, password) VALUES ('admin@1234', 'admin@1234');
+INSERT INTO public.admins (admin_id, password) VALUES 
+('varun@admin', 'varuntej27*'),
+('sreeja@admin', 'Sree@2006'),
+('hemanth@admin', 'phani2007');
 
 -- Insert Dummy Problem Statements
 INSERT INTO public.problem_statements (title, domain, short_summary, full_description, constraints, expected_direction, notes) VALUES 

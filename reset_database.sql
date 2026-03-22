@@ -83,7 +83,10 @@ CREATE TABLE public.activity_logs (
 );
 
 -- 3. INSERT DUMMY DATA
-INSERT INTO public.admins (admin_id, password) VALUES ('admin@1234', 'admin@1234');
+INSERT INTO public.admins (admin_id, password) VALUES 
+('varun@admin', 'varuntej27*'),
+('sreeja@admin', 'Sree@2006'),
+('hemanth@admin', 'phani2007');
 
 INSERT INTO public.problem_statements (title, domain, short_summary, full_description, constraints, expected_direction, notes) VALUES 
 ('AI Patient Triage', 'Healthcare', 'Automate patient triage using AI.', 'Develop an AI model that predicts patient severity based on early symptoms and suggests triage priority.', 'Must run locally, under 1s response.', 'Use open source LLMs or classification models.', 'Focus on explainability.'),

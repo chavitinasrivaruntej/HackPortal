@@ -28,19 +28,6 @@ export default function LoginPage() {
         setLoading(true);
 
         try {
-            // 0. Emergency/Hardcoded Master Admin Login
-            // This guarantees the admin can always get in, even if the database is empty.
-            if (idValue === "admin@1234" && password === "admin@1234") {
-                login({
-                    id: "00000000-0000-0000-0000-000000000000",
-                    role: "admin",
-                    display_id: idValue,
-                    name: "Master Admin",
-                });
-                setLoginSuccess({ name: "Master Admin" });
-                setTimeout(() => router.push("/admin/dashboard"), 5500);
-                return;
-            }
 
             // 1. Try Admin Login via DB
             const { data: adminData } = await supabase
