@@ -13,10 +13,18 @@ export default function AdminEliminationsPage() {
         const { data } = await supabase
             .from('teams')
             .select('*')
-            .in('status', ['Eliminated', 'Frozen'])
-            .order('updated_at', { ascending: false, nullsFirst: false });
+            .in('status', ['Eliminated', 'Frozen']);
 
-        if (data) setTeams(data);
+        if (data) {
+            const sortedData = data.sort((a, b) => {
+                const getNum = (id: string) => {
+                    const match = id?.match(/\d+/);
+                    return match ? parseInt(match[0], 10) : 0;
+                };
+                return getNum(a.team_id) - getNum(b.team_id);
+            });
+            setTeams(sortedData);
+        }
         setLoading(false);
     };
 

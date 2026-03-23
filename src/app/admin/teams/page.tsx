@@ -31,9 +31,17 @@ export default function AdminTeamsPage() {
     const fetchTeams = async () => {
         const { data } = await supabase
             .from('teams')
-            .select('*, problem_statements(title)')
-            .order('created_at', { ascending: false });
-        if (data) setTeams(data);
+            .select('*, problem_statements(title)');
+        if (data) {
+            const sortedData = data.sort((a, b) => {
+                const getNum = (id: string) => {
+                    const match = id?.match(/\d+/);
+                    return match ? parseInt(match[0], 10) : 0;
+                };
+                return getNum(a.team_id) - getNum(b.team_id);
+            });
+            setTeams(sortedData);
+        }
         setLoading(false);
     };
 

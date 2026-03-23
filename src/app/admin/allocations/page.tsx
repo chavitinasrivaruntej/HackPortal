@@ -15,7 +15,22 @@ export default function AdminAllocationsPage() {
             .select("*, teams(team_id, team_name, status)")
             .order("domain", { ascending: true });
 
-        if (problems) setData(problems);
+        if (problems) {
+            // Sort teams numerically inside each problem
+            const sortedProblems = problems.map(p => {
+                if (p.teams && Array.isArray(p.teams)) {
+                    p.teams.sort((a: any, b: any) => {
+                        const getNum = (id: string) => {
+                            const match = id?.match(/\d+/);
+                            return match ? parseInt(match[0], 10) : 0;
+                        };
+                        return getNum(a.team_id) - getNum(b.team_id);
+                    });
+                }
+                return p;
+            });
+            setData(sortedProblems);
+        }
         setLoading(false);
     };
 
