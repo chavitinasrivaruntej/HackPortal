@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
-import { Loader2, Search, Edit2, RotateCcw, AlertCircle, Plus, Trash2, Save, User as UserIcon, XCircle } from "lucide-react";
+import { Loader2, Search, Edit2, RotateCcw, AlertCircle, Plus, Trash2, Save, User as UserIcon, XCircle, Download } from "lucide-react";
 
 export default function AdminTeamsPage() {
     const [teams, setTeams] = useState<any[]>([]);
@@ -187,6 +187,75 @@ export default function AdminTeamsPage() {
         }
     };
 
+    const handleDownloadExcel = async () => {
+        setActionLoading(true);
+        try {
+            // Fetch comprehensive data
+            const { data: teamsData, error: teamsError } = await supabase
+                .from('teams')
+                .select('*, problem_statements(title), team_members(*)');
+                
+            if (teamsError) throw teamsError;
+
+            // Sort teamData numerically by team_id
+            const sortedData = (teamsData || []).sort((a, b) => {
+                const getNum = (id: string) => {
+                    const match = id?.match(/\d+/);
+                    return match ? parseInt(match[0], 10) : 0;
+                };
+                return getNum(a.team_id) - getNum(b.team_id);
+            });
+
+            // Format data into CSV rows
+            const csvRows = [];
+            // Headers
+            csvRows.push([
+                "Login ID", "Password", "Team Name", "Status", "Problem Statement", 
+                "Team Lead Name", "Team Lead Email", "Team Lead Phone", "Team Lead Gender",
+                "Member 2 Name", "Member 2 Email", "Member 2 Phone", "Member 2 Gender",
+                "Member 3 Name", "Member 3 Email", "Member 3 Phone", "Member 3 Gender"
+            ].join(","));
+
+            // Data Rows
+            sortedData.forEach(team => {
+                const members = team.team_members || [];
+                const lead = members.find((m: any) => m.member_role === "Team Lead") || {};
+                const mem2 = members.find((m: any) => m.member_role === "Member 2") || {};
+                const mem3 = members.find((m: any) => m.member_role === "Member 3") || {};
+
+                const escapeCsv = (str: string) => `"${(str || '').replace(/"/g, '""')}"`;
+
+                const row = [
+                    escapeCsv(team.team_id),
+                    escapeCsv(team.password),
+                    escapeCsv(team.team_name),
+                    escapeCsv(team.status),
+                    escapeCsv(team?.problem_statements?.title || "Unassigned"),
+                    escapeCsv(lead.name), escapeCsv(lead.email), escapeCsv(lead.phone), escapeCsv(lead.gender),
+                    escapeCsv(mem2.name), escapeCsv(mem2.email), escapeCsv(mem2.phone), escapeCsv(mem2.gender),
+                    escapeCsv(mem3.name), escapeCsv(mem3.email), escapeCsv(mem3.phone), escapeCsv(mem3.gender),
+                ];
+                csvRows.push(row.join(","));
+            });
+
+            const csvContent = "\uFEFF" + csvRows.join("\n"); // Add BOM for Excel UTF-8
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            const url = URL.createObjectURL(blob);
+            link.setAttribute("href", url);
+            link.setAttribute("download", `CTF_Teams_Export_${new Date().toISOString().split('T')[0]}.csv`);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+        } catch (err: any) {
+            alert(`Download failed: ${err.message}`);
+        } finally {
+            setActionLoading(false);
+        }
+    };
+
     const updateMember = (index: number, field: string, value: string) => {
         const newM = [...membersData];
         newM[index] = { ...newM[index], [field]: value };
@@ -308,6 +377,17 @@ export default function AdminTeamsPage() {
                         </tbody>
                     </table>
                 </div>
+            </div>
+
+            <div className="flex justify-center mt-6">
+                <button
+                    onClick={handleDownloadExcel}
+                    disabled={actionLoading}
+                    className="flex justify-center items-center gap-2.5 px-8 py-3.5 bg-accent/10 border border-accent/20 text-accent rounded-xl hover:bg-accent hover:text-accent-foreground font-bold shadow-sm transition-all group w-full sm:w-auto"
+                >
+                    {actionLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Download className="w-5 h-5 group-hover:scale-110 transition-transform" />}
+                    Download All Teams as Excel
+                </button>
             </div>
 
             {/* MASTER CREATE / EDIT MODAL */}
