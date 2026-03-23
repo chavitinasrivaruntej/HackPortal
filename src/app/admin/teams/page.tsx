@@ -383,9 +383,9 @@ export default function AdminTeamsPage() {
                 <button
                     onClick={handleDownloadExcel}
                     disabled={actionLoading}
-                    className="flex justify-center items-center gap-2.5 px-8 py-3.5 bg-accent/10 border border-accent/20 text-accent rounded-xl hover:bg-accent hover:text-accent-foreground font-bold shadow-sm transition-all group w-full sm:w-auto"
+                    className="flex justify-center items-center gap-2.5 px-8 py-3.5 bg-emerald-500 hover:bg-emerald-400 text-black border border-emerald-400/50 rounded-xl font-black shadow-[0_0_20px_rgba(16,185,129,0.4)] hover:shadow-[0_0_40px_rgba(16,185,129,0.6)] hover:-translate-y-1 transition-all group w-full sm:w-auto uppercase tracking-wider text-sm"
                 >
-                    {actionLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Download className="w-5 h-5 group-hover:scale-110 transition-transform" />}
+                    {actionLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Download className="w-5 h-5 group-hover:scale-110 transition-transform text-black" />}
                     Download All Teams as Excel
                 </button>
             </div>
