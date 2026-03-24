@@ -2,7 +2,7 @@
 
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
-import { LayoutDashboard, Users, FileText, BarChart3, UserMinus, MessageSquare } from "lucide-react";
+import { LayoutDashboard, Users, FileText, BarChart3, UserMinus, MessageSquare, Medal } from "lucide-react";
 import { IssueNotificationListener } from "@/components/IssueNotificationListener";
 
 const adminMenu = [
@@ -11,6 +11,7 @@ const adminMenu = [
     { name: "Problem Statements", href: "/admin/problems", icon: FileText },
     { name: "Allocations", href: "/admin/allocations", icon: BarChart3 },
     { name: "Issues", href: "/admin/issues", icon: MessageSquare },
+    { name: "Marks", href: "/admin/marks", icon: Medal },
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
