@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { supabase } from "@/lib/supabase";
 import { Loader2, Users, FileText, CheckCircle2, Clock, UserX, AlertTriangle, Send, Target, Paperclip, ExternalLink, MessageSquare, Trash2, ListTree, Activity, Zap } from "lucide-react";
 import { useIssuesStore } from "@/store/useIssuesStore";
@@ -18,6 +18,7 @@ export default function AdminDashboard() {
     const updateRound = useSettingsStore((state) => state.updateRound);
     const [roundUpdating, setRoundUpdating] = useState(false);
     const [roundInput, setRoundInput] = useState("");
+    const lastFetchRef = useRef(0);
 
     useEffect(() => {
         fetchIssues();
@@ -41,6 +42,11 @@ export default function AdminDashboard() {
     const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
 
     const fetchData = async () => {
+        // Throttle: Don't fetch more than once every 2 seconds during the rush
+        const now = Date.now();
+        if (now - lastFetchRef.current < 2000) return;
+        lastFetchRef.current = now;
+
         try {
             // Teams with problems
             const { data: teamsData } = await supabase.from('teams').select('*, problem_statements(title)');

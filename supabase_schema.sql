@@ -328,4 +328,7 @@ CREATE INDEX IF NOT EXISTS idx_admin_id ON public.admins(admin_id);
 CREATE INDEX IF NOT EXISTS idx_team_selections_team ON public.team_selections(team_ref_id);
 CREATE INDEX IF NOT EXISTS idx_team_selections_problem ON public.team_selections(problem_ref_id);
 CREATE INDEX IF NOT EXISTS idx_issues_team_id ON public.issues(team_id);
+CREATE INDEX IF NOT EXISTS idx_activity_logs_timestamp ON public.activity_logs(timestamp DESC);
+CREATE INDEX IF NOT EXISTS idx_teams_selected_problem ON public.teams(selected_problem_id);
+CREATE INDEX IF NOT EXISTS idx_announcements_created_at ON public.announcements(created_at DESC);
 
