@@ -209,7 +209,7 @@ export default function ParticipantDashboard() {
                                 {/* Heading Structure Update: Welcome + Team Name */}
                                 <div className="space-y-2">
                                     <p className="text-lg sm:text-xl font-black text-emerald-500/60 uppercase tracking-[0.4em] ml-1">Welcome,</p>
-                                    <h1 className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-black tracking-tighter text-white leading-[0.85] uppercase drop-shadow-2xl whitespace-nowrap">
+                                    <h1 className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-black tracking-tight text-white leading-[0.85] uppercase drop-shadow-2xl whitespace-nowrap">
                                         {user?.name}
                                     </h1>
                                     <div className="inline-flex items-center gap-2.5 px-3 py-1.5 bg-black/40 rounded-lg border border-white/10 text-sm font-mono text-emerald-100/70 shadow-inner mt-4">
