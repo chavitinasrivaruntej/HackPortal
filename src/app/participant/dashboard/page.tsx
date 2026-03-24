@@ -301,7 +301,7 @@ export default function ParticipantDashboard() {
                     <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wider mb-1">Problem Selected</p>
                     {selectedProblem ? (
                         <div className="flex items-center gap-2 mt-1">
-                            <span className="bg-emerald-500/20 text-emerald-500 border border-emerald-500/30 px-2 py-0.5 rounded-md text-xs font-black font-mono">
+                            <span className="text-emerald-500 text-sm font-black font-mono">
                                 #{String(selectedProblem.serial_number || 0).padStart(2, '0')}
                             </span>
                             <p className="text-xl font-bold truncate pr-4" title={selectedProblem.title}>

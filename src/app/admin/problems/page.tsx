@@ -144,7 +144,7 @@ export default function AdminProblemsPage() {
                         <div className="flex flex-col md:flex-row justify-between items-start gap-6">
                             <div className="flex-1 w-full relative">
                                 <div className="flex items-center gap-2 mb-3">
-                                    <span className="bg-accent/10 text-accent border border-accent/20 px-2 py-0.5 rounded-lg text-sm font-black font-mono">
+                                    <span className="bg-emerald-500 text-white px-2.5 py-0.5 rounded-lg text-sm font-black font-mono shadow-sm">
                                         #{String(p.serial_number || 0).padStart(2, '0')}
                                     </span>
                                     <h3 className="text-xl font-bold truncate pr-12">{p.title}</h3>
