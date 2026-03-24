@@ -2,6 +2,8 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/lib/supabase";
+import { useAuthStore } from "@/store/useAuthStore";
+import { logAdminAction } from "@/lib/logAdminAction";
 import {
     Loader2,
     Download,
@@ -32,6 +34,7 @@ const ROUNDS = [
 ];
 
 export default function AdminMarksPage() {
+    const { user } = useAuthStore();
     const [teams, setTeams] = useState<Team[]>([]);
     const [marks, setMarks] = useState<MarksMap>({});
     const [loading, setLoading] = useState(true);
@@ -164,6 +167,10 @@ export default function AdminMarksPage() {
             if (error) throw error;
             setSavedRows(new Set(teams.map((t) => t.id)));
             showToast("success", `All ${teams.length} teams' marks saved successfully!`);
+            // Log this action
+            if (user?.id) {
+                await logAdminAction(`Saved Round 1 marks for all ${teams.length} teams`, user.id);
+            }
         } catch (err: any) {
             showToast("error", `Save failed: ${err.message}`);
         } finally {

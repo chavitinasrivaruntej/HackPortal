@@ -2,9 +2,12 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
+import { useAuthStore } from "@/store/useAuthStore";
+import { logAdminAction } from "@/lib/logAdminAction";
 import { Loader2, Search, Edit2, RotateCcw, AlertCircle, Plus, Trash2, Save, User as UserIcon, XCircle, Download } from "lucide-react";
 
 export default function AdminTeamsPage() {
+    const { user } = useAuthStore();
     const [teams, setTeams] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState("");
@@ -111,7 +114,10 @@ export default function AdminTeamsPage() {
             await supabase.from("activity_logs").delete().eq("team_ref_id", teamId);
             const { error } = await supabase.from("teams").delete().eq("id", teamId);
             if (error) alert(error.message);
-            else fetchTeams();
+            else {
+                if (user?.id) await logAdminAction(`Deleted team: ${teamName}`, user.id);
+                fetchTeams();
+            }
         }
     };
 
@@ -120,7 +126,10 @@ export default function AdminTeamsPage() {
         setActionLoading(true);
         const { error } = await supabase.from('teams').update({ status: 'Eliminated' }).eq('id', teamToEliminate.id);
         if (error) alert(error.message);
-        else fetchTeams();
+        else {
+            fetchTeams();
+            if (user?.id) await logAdminAction(`Eliminated team: ${teamToEliminate.name}`, user.id, teamToEliminate.id);
+        }
         setActionLoading(false);
         setTeamToEliminate(null);
     };
@@ -180,6 +189,15 @@ export default function AdminTeamsPage() {
 
             setIsModalOpen(false);
             fetchTeams();
+            if (user?.id) {
+                await logAdminAction(
+                    modalMode === "create"
+                        ? `Registered new team: ${teamData.team_name} (${teamData.team_id})`
+                        : `Edited team: ${teamData.team_name} (${teamData.team_id})`,
+                    user.id,
+                    currentTeamId ?? undefined
+                );
+            }
         } catch (err: any) {
             alert(`Action failed: ${err.message}`);
         } finally {
