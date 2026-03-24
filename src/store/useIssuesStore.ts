@@ -59,13 +59,9 @@ export const useIssuesStore = create<IssuesState>()((set, get) => ({
     },
 
     addIssue: async (issueData) => {
-        const currentCount = get().issues.length;
-        const newIssueId = `ISSUE${String(currentCount + 1).padStart(3, '0')}`;
-        
         const { error } = await supabase
             .from('issues')
             .insert([{
-                issue_id: newIssueId,
                 team_name: issueData.teamName,
                 team_id: issueData.teamId,
                 title: issueData.title,

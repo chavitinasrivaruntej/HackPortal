@@ -134,6 +134,24 @@ CREATE TABLE public.activity_logs (
 );
 
 
+-- 8. issues table
+CREATE SEQUENCE IF NOT EXISTS issues_seq;
+
+CREATE TABLE public.issues (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    issue_id TEXT UNIQUE DEFAULT 'ISSUE-' || lpad(nextval('issues_seq')::text, 3, '0'),
+    team_name TEXT NOT NULL,
+    team_id TEXT NOT NULL,
+    title TEXT NOT NULL,
+    category TEXT NOT NULL,
+    description TEXT NOT NULL,
+    priority TEXT NOT NULL,
+    status TEXT DEFAULT 'Open',
+    attachment_url TEXT,
+    timestamp TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+
 -- ====================================================
 -- TRIGGERS & FUNCTIONS
 -- ====================================================
@@ -141,7 +159,21 @@ CREATE TABLE public.activity_logs (
 -- Function to handle team selection insertions and update problem counter/team status
 CREATE OR REPLACE FUNCTION handle_team_selection()
 RETURNS TRIGGER AS $$
+DECLARE
+    current_count INTEGER;
+    max_limit INTEGER;
 BEGIN
+    -- ATOMIC CHECK: Ensure we haven't reached the limit yet
+    -- Using SELECT FOR UPDATE to lock the row and prevent race conditions
+    SELECT selected_count, selection_limit INTO current_count, max_limit
+    FROM public.problem_statements
+    WHERE id = NEW.problem_ref_id
+    FOR UPDATE;
+
+    IF current_count >= max_limit THEN
+        RAISE EXCEPTION 'This problem statement is already full (Limit: %)', max_limit;
+    END IF;
+
     -- Update teams table with selected problem
     UPDATE public.teams
     SET selected_problem_id = NEW.problem_ref_id
@@ -154,7 +186,7 @@ BEGIN
 
     -- Log activity
     INSERT INTO public.activity_logs (action, team_ref_id)
-    VALUES ('Selected Problem Statement', NEW.team_ref_id);
+    VALUES ('Selected Problem Statement: ' || NEW.problem_ref_id, NEW.team_ref_id);
 
     RETURN NEW;
 END;
@@ -230,8 +262,42 @@ ALTER PUBLICATION supabase_realtime ADD TABLE public.teams;
 -- ====================================================
 -- ROW LEVEL SECURITY (RLS)
 -- ====================================================
--- Since we are doing custom auth based on table queries instead of Supabase Auth Users for now,
--- we will allow public read and authenticated read/write via the anon key.
--- Alternatively, RLS can be set up to check JWT claims if we integrate Supabase Auth.
--- For the scope of this custom login, we will leave tables publicly accessible to the anon key but secure them in the frontend API calls.
--- (In a production system with Supabase Auth, you would enable RLS and write policies here).
+-- Enable RLS on all tables
+ALTER TABLE public.admins ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.problem_statements ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.teams ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.team_members ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.team_selections ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.announcements ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.activity_logs ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.issues ENABLE ROW LEVEL SECURITY;
+
+-- 1. Public Read Policies
+CREATE POLICY "Public Read Announcements" ON public.announcements FOR SELECT USING (true);
+CREATE POLICY "Public Read Problem Statements" ON public.problem_statements FOR SELECT USING (true);
+
+-- 2. Team Policies (Accessing their own data)
+-- Since we use custom login, these policies are simplified to allow anon access for now 
+-- BUT we restrict sensitive operations.
+CREATE POLICY "Public Select Teams" ON public.teams FOR SELECT USING (true);
+CREATE POLICY "Public Update Teams Status" ON public.teams FOR UPDATE USING (true);
+
+CREATE POLICY "Public Select Members" ON public.team_members FOR SELECT USING (true);
+CREATE POLICY "Public Manage Members" ON public.team_members FOR INSERT WITH CHECK (true);
+
+-- 3. Selection & Issues Policies
+CREATE POLICY "Public Manage Selections" ON public.team_selections FOR ALL USING (true);
+CREATE POLICY "Public Read Issues" ON public.issues FOR SELECT USING (true);
+CREATE POLICY "Public Insert Issues" ON public.issues FOR INSERT WITH CHECK (true);
+
+-- 4. Admin Policies
+CREATE POLICY "Public Read Admins" ON public.admins FOR SELECT USING (true);
+CREATE POLICY "Public Read Logs" ON public.activity_logs FOR SELECT USING (true);
+
+-- Performance Indexes for high concurrency (80 users)
+CREATE INDEX IF NOT EXISTS idx_team_id ON public.teams(team_id);
+CREATE INDEX IF NOT EXISTS idx_admin_id ON public.admins(admin_id);
+CREATE INDEX IF NOT EXISTS idx_team_selections_team ON public.team_selections(team_ref_id);
+CREATE INDEX IF NOT EXISTS idx_team_selections_problem ON public.team_selections(problem_ref_id);
+CREATE INDEX IF NOT EXISTS idx_issues_team_id ON public.issues(team_id);
+
