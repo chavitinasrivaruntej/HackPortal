@@ -2,9 +2,12 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
+import { useAuthStore } from "@/store/useAuthStore";
+import { logAdminAction } from "@/lib/logAdminAction";
 import { Loader2, Plus, Edit2, Trash2, RotateCcw, Save } from "lucide-react";
 
 export default function AdminProblemsPage() {
+    const { user } = useAuthStore();
     const [problems, setProblems] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
 
@@ -58,13 +61,17 @@ export default function AdminProblemsPage() {
             await supabase.from("team_selections").delete().eq("problem_ref_id", id);
             const { error } = await supabase.from("problem_statements").delete().eq("id", id);
             if (error) alert("Error deleting: " + error.message);
-            else fetchProblems();
+            else {
+                if (user?.id) await logAdminAction(`Deleted problem statement: "${title}"`, user.id);
+                fetchProblems();
+            }
         }
     };
 
     const handleReset = async (id: string, title: string) => {
         if (confirm(`Are you absolutely sure you want to forcibly detach ALL teams currently working on '${title}'? This will reset the selection count to 0.`)) {
             await supabase.from("team_selections").delete().eq("problem_ref_id", id);
+            if (user?.id) await logAdminAction(`Reset all team selections for problem: "${title}"`, user.id);
             fetchProblems();
         }
     };
@@ -104,12 +111,14 @@ export default function AdminProblemsPage() {
                     selection_limit: Number(payload.selection_limit) || 4
                 });
                 if (error) throw error;
+                if (user?.id) await logAdminAction(`Created new problem statement: "${payload.title}" (PS#${payload.serial_number})`, user.id);
             } else {
                 const { error } = await supabase.from('problem_statements').update({
                     ...payload,
                     selection_limit: Number(payload.selection_limit) || 4
                 }).eq('id', editId);
                 if (error) throw error;
+                if (user?.id) await logAdminAction(`Edited problem statement: "${payload.title}" (PS#${payload.serial_number})`, user.id);
             }
 
             setIsModalOpen(false);

@@ -103,6 +103,7 @@ export default function AdminTeamsPage() {
     const handleResetSelection = async (teamId: string, teamName: string) => {
         if (confirm(`Are you sure you want to completely clear the selection for ${teamName}? This frees up their slot.`)) {
             await supabase.from("team_selections").delete().eq("team_ref_id", teamId);
+            if (user?.id) await logAdminAction(`Reset problem selection for team: ${teamName}`, user.id, teamId);
             fetchTeams();
         }
     };

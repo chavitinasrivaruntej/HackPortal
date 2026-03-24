@@ -143,6 +143,20 @@ export default function AdminMarksPage() {
 
         if (!error) {
             setSavedRows((prev) => new Set([...prev, teamId]));
+            // Log each individual mark save
+            if (user?.id) {
+                const team = teams.find((t) => t.id === teamId);
+                const teamLabel = team ? `${team.team_id} (${team.team_name})` : teamId;
+                const parts: string[] = [];
+                if (entry.round1 !== "") parts.push(`R1=${entry.round1}`);
+                if (entry.round2 !== "") parts.push(`R2=${entry.round2}`);
+                if (entry.round3 !== "") parts.push(`R3=${entry.round3}`);
+                await logAdminAction(
+                    `Updated marks for ${teamLabel}: ${parts.join(", ") || "cleared"}`,
+                    user.id,
+                    teamId
+                );
+            }
         }
     };
 
