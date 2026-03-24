@@ -33,17 +33,10 @@ export default function ProblemStatementsPage() {
         const { data } = await supabase
             .from("problem_statements")
             .select("*")
-            .order("created_at", { ascending: true });
+            .order("serial_number", { ascending: true });
 
         if (data) {
-            // Sort: Available first
-            const sorted = data.sort((a, b) => {
-                const aFull = a.selected_count >= a.selection_limit;
-                const bFull = b.selected_count >= b.selection_limit;
-                if (aFull === bFull) return 0;
-                return aFull ? 1 : -1;
-            });
-            setProblems(sorted);
+            setProblems(data);
         }
         setLoading(false);
     };
@@ -173,7 +166,10 @@ export default function ProblemStatementsPage() {
                                     <span className="inline-block px-2.5 py-1 bg-emerald-500/10 text-emerald-500 text-xs font-bold uppercase tracking-wider rounded-md">
                                         {prob.domain}
                                     </span>
-                                    <h3 className="text-xl font-bold">{prob.title}</h3>
+                                    <h3 className="text-xl font-bold flex items-center gap-2">
+                                        <span className="text-emerald-500/50 text-base font-mono">#{prob.serial_number || 0}</span>
+                                        {prob.title}
+                                    </h3>
                                     <p className="text-muted-foreground text-sm max-w-3xl leading-relaxed">
                                         {prob.short_summary}
                                     </p>
@@ -215,7 +211,10 @@ export default function ProblemStatementsPage() {
                                     <span className="inline-block px-2.5 py-1 bg-emerald-500/10 text-emerald-500 text-xs font-bold uppercase tracking-wider rounded-md mb-2">
                                         {selectedProblem.domain}
                                     </span>
-                                    <h2 className="text-2xl font-bold">{selectedProblem.title}</h2>
+                                    <h2 className="text-2xl font-bold">
+                                        <span className="text-emerald-500/50 mr-2 font-mono">#{selectedProblem.serial_number || 0}</span>
+                                        {selectedProblem.title}
+                                    </h2>
                                 </div>
                                 <button onClick={() => { setSelectedProblem(null); setConfirming(false); setErrorMsg(""); }} className="p-2 bg-muted text-muted-foreground rounded-full hover:bg-accent hover:text-white transition-colors">
                                     &times;

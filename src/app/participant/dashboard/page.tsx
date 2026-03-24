@@ -300,7 +300,10 @@ export default function ParticipantDashboard() {
                     <Trophy className="w-5 h-5 text-muted-foreground mb-4" />
                     <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wider mb-1">Problem Selected</p>
                     {selectedProblem ? (
-                        <p className="text-xl font-bold truncate pr-8" title={selectedProblem.title}>{selectedProblem.title}</p>
+                        <p className="text-xl font-bold truncate pr-8" title={selectedProblem.title}>
+                            <span className="text-accent mr-2 font-mono">#{selectedProblem.serial_number || 0}</span>
+                            {selectedProblem.title}
+                        </p>
                     ) : (
                         <p className="text-xl font-bold text-muted-foreground">Not Yet</p>
                     )}

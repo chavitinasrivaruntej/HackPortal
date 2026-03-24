@@ -22,13 +22,14 @@ export default function AdminProblemsPage() {
         constraints: "",
         expected_direction: "",
         notes: "",
-        selection_limit: 4
+        selection_limit: 4,
+        serial_number: 0
     };
 
     const [payload, setPayload] = useState({ ...defaultPayload });
 
     const fetchProblems = async () => {
-        const { data } = await supabase.from("problem_statements").select("*").order("created_at", { ascending: false });
+        const { data } = await supabase.from("problem_statements").select("*").order("serial_number", { ascending: true });
         if (data) setProblems(data);
         setLoading(false);
     };
@@ -86,7 +87,8 @@ export default function AdminProblemsPage() {
             constraints: prob.constraints || "",
             expected_direction: prob.expected_direction || "",
             notes: prob.notes || "",
-            selection_limit: prob.selection_limit
+            selection_limit: prob.selection_limit,
+            serial_number: prob.serial_number || 0
         });
         setIsModalOpen(true);
     };
@@ -145,7 +147,10 @@ export default function AdminProblemsPage() {
                                     <span className="bg-emerald-500/10 text-emerald-500 px-2.5 py-1 rounded-md text-xs font-bold tracking-wider uppercase shrink-0">
                                         {p.domain}
                                     </span>
-                                    <h3 className="text-xl font-bold truncate pr-12">{p.title}</h3>
+                                    <h3 className="text-xl font-bold truncate pr-12">
+                                        <span className="text-accent mr-2">#{p.serial_number || 0}</span>
+                                        {p.title}
+                                    </h3>
                                 </div>
                                 <p className="text-muted-foreground text-sm line-clamp-2 max-w-4xl">{p.short_summary}</p>
                             </div>
@@ -217,6 +222,10 @@ export default function AdminProblemsPage() {
                                     <div>
                                         <label className="block text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">Team Limit</label>
                                         <input required type="number" min="1" value={payload.selection_limit} onChange={e => setPayload({ ...payload, selection_limit: parseInt(e.target.value) })} className="w-full p-2.5 bg-background border border-border rounded-lg focus:outline-none focus:border-accent" />
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">Serial No.</label>
+                                        <input required type="number" min="0" value={payload.serial_number} onChange={e => setPayload({ ...payload, serial_number: parseInt(e.target.value) })} className="w-full p-2.5 bg-background border border-border rounded-lg focus:outline-none focus:border-accent" />
                                     </div>
                                 </div>
                             </div>

@@ -13,7 +13,7 @@ export default function AdminAllocationsPage() {
         const { data: problems } = await supabase
             .from("problem_statements")
             .select("*, teams(team_id, team_name, status)")
-            .order("domain", { ascending: true });
+            .order("serial_number", { ascending: true });
 
         if (problems) {
             // Sort teams numerically inside each problem
