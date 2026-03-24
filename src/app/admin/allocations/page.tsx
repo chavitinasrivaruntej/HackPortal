@@ -85,7 +85,6 @@ export default function AdminAllocationsPage() {
                                     <tr key={p.id} className="hover:bg-muted/30 transition-colors">
                                         <td className="px-6 py-5">
                                             <p className="font-bold text-base mb-1">{p.title}</p>
-                                            <span className="text-xs font-semibold px-2 py-0.5 bg-accent/10 text-accent rounded-md">{p.domain}</span>
                                         </td>
                                         <td className="px-6 py-5 text-center font-bold text-muted-foreground">{p.selection_limit}</td>
                                         <td className="px-6 py-5 text-center font-bold text-foreground">{p.selected_count}</td>

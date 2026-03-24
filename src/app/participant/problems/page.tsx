@@ -163,17 +163,14 @@ export default function ProblemStatementsPage() {
                             <div className="flex flex-col lg:flex-row gap-6 items-start lg:items-center justify-between">
 
                                 <div className="flex-1 space-y-3">
-                                    <span className="inline-block px-2.5 py-1 bg-emerald-500/10 text-emerald-500 text-xs font-bold uppercase tracking-wider rounded-md">
-                                        {prob.domain}
-                                    </span>
-                                    <div className="flex items-center gap-3">
+                                    <div className="flex items-center gap-3 mb-2">
                                         <span className="bg-emerald-500 text-white px-2.5 py-1 rounded-lg text-sm font-black font-mono shadow-sm">
                                             #{String(prob.serial_number || 0).padStart(2, '0')}
                                         </span>
                                         <h3 className="text-xl font-bold">{prob.title}</h3>
                                     </div>
-                                    <p className="text-muted-foreground text-sm max-w-3xl leading-relaxed">
-                                        {prob.short_summary}
+                                    <p className="text-muted-foreground text-sm max-w-3xl leading-relaxed line-clamp-3">
+                                        {prob.full_description}
                                     </p>
                                 </div>
 
@@ -210,10 +207,7 @@ export default function ProblemStatementsPage() {
                         <div className="p-6 border-b border-border">
                             <div className="flex justify-between items-start">
                                 <div>
-                                    <span className="inline-block px-2.5 py-1 bg-emerald-500/10 text-emerald-500 text-xs font-bold uppercase tracking-wider rounded-md mb-2">
-                                        {selectedProblem.domain}
-                                    </span>
-                                    <div className="flex items-center gap-3">
+                                    <div className="flex items-center gap-3 mb-4">
                                         <span className="bg-emerald-500 text-white px-3 py-1 rounded-xl text-lg font-black font-mono shadow-md">
                                             #{String(selectedProblem.serial_number || 0).padStart(2, '0')}
                                         </span>
@@ -228,25 +222,8 @@ export default function ProblemStatementsPage() {
 
                         <div className="p-6 overflow-y-auto flex-1 space-y-6">
                             <div>
-                                <h3 className="text-sm font-semibold uppercase text-muted-foreground mb-2">Description</h3>
-                                <p className="text-sm leading-relaxed text-foreground whitespace-pre-wrap">{selectedProblem.full_description}</p>
+                                <p className="text-base leading-relaxed text-foreground whitespace-pre-wrap">{selectedProblem.full_description}</p>
                             </div>
-                            <div className="grid sm:grid-cols-2 gap-6">
-                                <div>
-                                    <h3 className="text-sm font-semibold uppercase text-muted-foreground mb-2">Constraints</h3>
-                                    <p className="text-sm leading-relaxed text-foreground whitespace-pre-wrap">{selectedProblem.constraints}</p>
-                                </div>
-                                <div>
-                                    <h3 className="text-sm font-semibold uppercase text-muted-foreground mb-2">Expected Direction</h3>
-                                    <p className="text-sm leading-relaxed text-foreground whitespace-pre-wrap">{selectedProblem.expected_direction}</p>
-                                </div>
-                            </div>
-                            {selectedProblem.notes && (
-                                <div className="bg-muted/50 p-4 rounded-xl border border-border/50">
-                                    <h3 className="text-xs font-semibold uppercase text-muted-foreground mb-1">Notes</h3>
-                                    <p className="text-sm text-foreground">{selectedProblem.notes}</p>
-                                </div>
-                            )}
 
                             {confirming && (
                                 <div className="mt-4 p-4 bg-orange-500/10 border border-orange-500/20 rounded-xl space-y-3">

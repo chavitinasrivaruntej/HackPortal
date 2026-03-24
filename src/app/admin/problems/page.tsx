@@ -143,18 +143,13 @@ export default function AdminProblemsPage() {
                     <div key={p.id} className="bg-card border border-border shadow-sm rounded-2xl p-6 transition-all hover:border-accent/40 group">
                         <div className="flex flex-col md:flex-row justify-between items-start gap-6">
                             <div className="flex-1 w-full relative">
-                                <div className="flex items-center gap-3 mb-3">
-                                    <span className="bg-emerald-500/10 text-emerald-500 px-2.5 py-1 rounded-md text-xs font-bold tracking-wider uppercase shrink-0">
-                                        {p.domain}
+                                <div className="flex items-center gap-2 mb-3">
+                                    <span className="bg-accent/10 text-accent border border-accent/20 px-2 py-0.5 rounded-lg text-sm font-black font-mono">
+                                        #{String(p.serial_number || 0).padStart(2, '0')}
                                     </span>
-                                    <div className="flex items-center gap-2">
-                                        <span className="bg-accent/10 text-accent border border-accent/20 px-2 py-0.5 rounded-lg text-sm font-black font-mono">
-                                            #{String(p.serial_number || 0).padStart(2, '0')}
-                                        </span>
-                                        <h3 className="text-xl font-bold truncate pr-12">{p.title}</h3>
-                                    </div>
+                                    <h3 className="text-xl font-bold truncate pr-12">{p.title}</h3>
                                 </div>
-                                <p className="text-muted-foreground text-sm line-clamp-2 max-w-4xl">{p.short_summary}</p>
+                                <p className="text-muted-foreground text-sm line-clamp-2 max-w-4xl leading-relaxed">{p.full_description}</p>
                             </div>
 
                             <div className="flex items-center justify-between md:justify-end gap-5 flex-wrap w-full md:w-auto mt-4 md:mt-0">
@@ -212,50 +207,25 @@ export default function AdminProblemsPage() {
                             </div>
 
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 text-sm">
-                                <div>
-                                    <label className="block text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">Problem Title</label>
-                                    <input required type="text" value={payload.title} placeholder="Gen-AI Customer Support" onChange={e => setPayload({ ...payload, title: e.target.value })} className="w-full p-2.5 bg-background border border-border rounded-lg focus:outline-none focus:border-accent font-semibold" />
+                                <div className="space-y-4">
+                                    <label className="block text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">Problem Heading (Title)</label>
+                                    <input required type="text" value={payload.title} placeholder="e.g. AI Customer Support" onChange={e => setPayload({ ...payload, title: e.target.value })} className="w-full p-2.5 bg-background border border-border rounded-lg focus:outline-none focus:border-accent font-semibold text-lg" />
                                 </div>
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
-                                        <label className="block text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">Domain Focus</label>
-                                        <input required type="text" value={payload.domain} placeholder="FinTech" onChange={e => setPayload({ ...payload, domain: e.target.value })} className="w-full p-2.5 bg-background border border-border rounded-lg focus:outline-none focus:border-accent" />
-                                    </div>
-                                    <div>
-                                        <label className="block text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">Team Limit</label>
+                                        <label className="block text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">Team Selection Limit</label>
                                         <input required type="number" min="1" value={payload.selection_limit} onChange={e => setPayload({ ...payload, selection_limit: parseInt(e.target.value) })} className="w-full p-2.5 bg-background border border-border rounded-lg focus:outline-none focus:border-accent" />
                                     </div>
                                     <div>
-                                        <label className="block text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">Serial No.</label>
+                                        <label className="block text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">Serial Order No.</label>
                                         <input required type="number" min="0" value={payload.serial_number} onChange={e => setPayload({ ...payload, serial_number: parseInt(e.target.value) })} className="w-full p-2.5 bg-background border border-border rounded-lg focus:outline-none focus:border-accent" />
                                     </div>
                                 </div>
                             </div>
 
                             <div>
-                                <label className="block text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">Short Summary (Visible on Dashboard Card)</label>
-                                <textarea required value={payload.short_summary} placeholder="A 2-sentence hook to capture participant attention." rows={2} onChange={e => setPayload({ ...payload, short_summary: e.target.value })} className="w-full p-2.5 bg-background border border-border rounded-lg focus:outline-none focus:border-accent resize-none text-sm" />
-                            </div>
-
-                            <div>
-                                <label className="block text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">Full Complete Description (Visible in Modal)</label>
-                                <textarea required value={payload.full_description} placeholder="The massive wall of text detailing the entire scope of the hackathon problem..." rows={5} onChange={e => setPayload({ ...payload, full_description: e.target.value })} className="w-full p-2.5 bg-background border border-border rounded-lg focus:outline-none focus:border-accent resize-y text-sm leading-relaxed" />
-                            </div>
-
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 text-sm">
-                                <div>
-                                    <label className="block text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">Required Constraints</label>
-                                    <textarea value={payload.constraints} rows={3} placeholder="E.g., Must use React and OpenAI API..." onChange={e => setPayload({ ...payload, constraints: e.target.value })} className="w-full p-2.5 bg-background border border-border rounded-lg focus:outline-none focus:border-accent resize-none" />
-                                </div>
-                                <div>
-                                    <label className="block text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">Expected Outome / Direction</label>
-                                    <textarea value={payload.expected_direction} rows={3} placeholder="E.g., A fully working web prototype..." onChange={e => setPayload({ ...payload, expected_direction: e.target.value })} className="w-full p-2.5 bg-background border border-border rounded-lg focus:outline-none focus:border-accent resize-none" />
-                                </div>
-                            </div>
-
-                            <div>
-                                <label className="block text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">Admin / Sponsor Notes (Optional)</label>
-                                <input type="text" value={payload.notes} placeholder="Extra hints or data links..." onChange={e => setPayload({ ...payload, notes: e.target.value })} className="w-full p-2.5 bg-background border border-border rounded-lg focus:outline-none focus:border-accent text-sm" />
+                                <label className="block text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">Problem Description</label>
+                                <textarea required value={payload.full_description} placeholder="Enter the full details of the problem statement here..." rows={12} onChange={e => setPayload({ ...payload, full_description: e.target.value })} className="w-full p-3 bg-background border border-border rounded-lg focus:outline-none focus:border-accent resize-y text-base leading-relaxed" />
                             </div>
 
                         </div>
