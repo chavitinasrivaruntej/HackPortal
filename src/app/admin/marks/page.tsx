@@ -17,6 +17,7 @@ type Team = {
     team_id: string;
     team_name: string;
     status: string;
+    ps_serial: number | null;
 };
 
 type MarksMap = Record<string, { round1: string; round2: string; round3: string; dbId?: string }>;
@@ -47,20 +48,23 @@ export default function AdminMarksPage() {
         setLoading(true);
         const { data: teamsData } = await supabase
             .from("teams")
-            .select("id, team_id, team_name, status");
+            .select("id, team_id, team_name, status, problem_statements(serial_number)");
 
         const { data: marksData } = await supabase
             .from("team_marks")
             .select("*");
 
         if (teamsData) {
-            const sorted = teamsData.sort((a, b) => {
+            const sorted = (teamsData as any[]).sort((a, b) => {
                 const getNum = (id: string) => {
                     const match = id?.match(/\d+/);
                     return match ? parseInt(match[0], 10) : 0;
                 };
                 return getNum(a.team_id) - getNum(b.team_id);
-            });
+            }).map((t: any) => ({
+                ...t,
+                ps_serial: t.problem_statements?.serial_number ?? null,
+            }));
             setTeams(sorted);
 
             const marksMap: MarksMap = {};
@@ -167,7 +171,7 @@ export default function AdminMarksPage() {
 
     const handleExportExcel = () => {
         const csvRows: string[] = [];
-        csvRows.push(["#", "Login ID", "Team Name", "Status", "Round 1 (/5)", "Round 2 (/5)", "Round 3 (/5)", "Total"].join(","));
+        csvRows.push(["#", "Login ID", "Team Name", "PS#", "Status", "Round 1 (/5)", "Round 2 (/5)", "Round 3 (/5)", "Total"].join(","));
 
         teams.forEach((t, i) => {
             const m = marks[t.id] || { round1: "", round2: "", round3: "" };
@@ -181,6 +185,7 @@ export default function AdminMarksPage() {
                     i + 1,
                     escape(t.team_id),
                     escape(t.team_name),
+                    t.ps_serial != null ? t.ps_serial : "Unassigned",
                     escape(t.status),
                     m.round1 !== "" ? r1 : "N/A",
                     m.round2 !== "" ? r2 : "N/A",
@@ -358,6 +363,15 @@ export default function AdminMarksPage() {
                                                 <span className="font-bold text-[15px] text-foreground">
                                                     {team.team_name}
                                                 </span>
+                                                {team.ps_serial != null ? (
+                                                    <span className="text-[11px] font-black px-2 py-0.5 rounded-md bg-accent/20 text-accent border border-accent/30 tracking-wide">
+                                                        PS#{team.ps_serial}
+                                                    </span>
+                                                ) : (
+                                                    <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-muted text-muted-foreground/50 border border-border/30 italic">
+                                                        No PS
+                                                    </span>
+                                                )}
                                                 {isSaved && (
                                                     <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
                                                 )}
