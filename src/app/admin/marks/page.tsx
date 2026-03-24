@@ -80,6 +80,22 @@ export default function AdminMarksPage() {
 
     useEffect(() => {
         fetchData();
+
+        // Real-time sync: any admin saving marks triggers a refresh for all admins
+        const channel = supabase
+            .channel("admin_marks_realtime")
+            .on(
+                "postgres_changes",
+                { event: "*", schema: "public", table: "team_marks" },
+                () => {
+                    fetchData();
+                }
+            )
+            .subscribe();
+
+        return () => {
+            supabase.removeChannel(channel);
+        };
     }, [fetchData]);
 
     const updateMark = (teamId: string, round: string, value: string) => {
