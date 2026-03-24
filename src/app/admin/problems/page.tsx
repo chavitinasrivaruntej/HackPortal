@@ -147,10 +147,12 @@ export default function AdminProblemsPage() {
                                     <span className="bg-emerald-500/10 text-emerald-500 px-2.5 py-1 rounded-md text-xs font-bold tracking-wider uppercase shrink-0">
                                         {p.domain}
                                     </span>
-                                    <h3 className="text-xl font-bold truncate pr-12">
-                                        <span className="text-accent mr-2">#{p.serial_number || 0}</span>
-                                        {p.title}
-                                    </h3>
+                                    <div className="flex items-center gap-2">
+                                        <span className="bg-accent/10 text-accent border border-accent/20 px-2 py-0.5 rounded-lg text-sm font-black font-mono">
+                                            #{String(p.serial_number || 0).padStart(2, '0')}
+                                        </span>
+                                        <h3 className="text-xl font-bold truncate pr-12">{p.title}</h3>
+                                    </div>
                                 </div>
                                 <p className="text-muted-foreground text-sm line-clamp-2 max-w-4xl">{p.short_summary}</p>
                             </div>

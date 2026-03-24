@@ -300,10 +300,14 @@ export default function ParticipantDashboard() {
                     <Trophy className="w-5 h-5 text-muted-foreground mb-4" />
                     <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wider mb-1">Problem Selected</p>
                     {selectedProblem ? (
-                        <p className="text-xl font-bold truncate pr-8" title={selectedProblem.title}>
-                            <span className="text-accent mr-2 font-mono">#{selectedProblem.serial_number || 0}</span>
-                            {selectedProblem.title}
-                        </p>
+                        <div className="flex items-center gap-2 mt-1">
+                            <span className="bg-emerald-500/20 text-emerald-500 border border-emerald-500/30 px-2 py-0.5 rounded-md text-xs font-black font-mono">
+                                #{String(selectedProblem.serial_number || 0).padStart(2, '0')}
+                            </span>
+                            <p className="text-xl font-bold truncate pr-4" title={selectedProblem.title}>
+                                {selectedProblem.title}
+                            </p>
+                        </div>
                     ) : (
                         <p className="text-xl font-bold text-muted-foreground">Not Yet</p>
                     )}

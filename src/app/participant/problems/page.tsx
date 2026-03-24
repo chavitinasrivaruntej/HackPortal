@@ -166,10 +166,12 @@ export default function ProblemStatementsPage() {
                                     <span className="inline-block px-2.5 py-1 bg-emerald-500/10 text-emerald-500 text-xs font-bold uppercase tracking-wider rounded-md">
                                         {prob.domain}
                                     </span>
-                                    <h3 className="text-xl font-bold flex items-center gap-2">
-                                        <span className="text-emerald-500/50 text-base font-mono">#{prob.serial_number || 0}</span>
-                                        {prob.title}
-                                    </h3>
+                                    <div className="flex items-center gap-3">
+                                        <span className="bg-emerald-500 text-white px-2.5 py-1 rounded-lg text-sm font-black font-mono shadow-sm">
+                                            #{String(prob.serial_number || 0).padStart(2, '0')}
+                                        </span>
+                                        <h3 className="text-xl font-bold">{prob.title}</h3>
+                                    </div>
                                     <p className="text-muted-foreground text-sm max-w-3xl leading-relaxed">
                                         {prob.short_summary}
                                     </p>
@@ -211,10 +213,12 @@ export default function ProblemStatementsPage() {
                                     <span className="inline-block px-2.5 py-1 bg-emerald-500/10 text-emerald-500 text-xs font-bold uppercase tracking-wider rounded-md mb-2">
                                         {selectedProblem.domain}
                                     </span>
-                                    <h2 className="text-2xl font-bold">
-                                        <span className="text-emerald-500/50 mr-2 font-mono">#{selectedProblem.serial_number || 0}</span>
-                                        {selectedProblem.title}
-                                    </h2>
+                                    <div className="flex items-center gap-3">
+                                        <span className="bg-emerald-500 text-white px-3 py-1 rounded-xl text-lg font-black font-mono shadow-md">
+                                            #{String(selectedProblem.serial_number || 0).padStart(2, '0')}
+                                        </span>
+                                        <h2 className="text-2xl font-bold">{selectedProblem.title}</h2>
+                                    </div>
                                 </div>
                                 <button onClick={() => { setSelectedProblem(null); setConfirming(false); setErrorMsg(""); }} className="p-2 bg-muted text-muted-foreground rounded-full hover:bg-accent hover:text-white transition-colors">
                                     &times;
