@@ -351,8 +351,8 @@ export default function ParticipantDashboard() {
 
                 <div className="bg-card border border-border rounded-2xl p-6 shadow-sm flex flex-col justify-between items-start hover:border-accent/40 transition-colors">
                     <div>
-                        <h3 className="font-bold text-lg mb-1">Need Help?</h3>
-                        <p className="text-sm text-muted-foreground mb-6">Check out the official hackathon documentation for guidelines and submission rules.</p>
+                        <h3 className="font-bold text-lg mb-1">Rules</h3>
+                        <p className="text-sm text-muted-foreground mb-6">Check out the official hackathon documentation for guidelines and rules.</p>
                     </div>
                     <a href="/Hackathon%20Rules%20and%20Guidelines.pdf" target="_blank" rel="noopener noreferrer" className="w-full py-2.5 bg-muted hover:bg-muted/80 text-foreground font-semibold rounded-xl transition-colors text-sm border border-border flex items-center justify-center gap-2">
                         <LinkIcon className="w-4 h-4" /> View Guidelines
