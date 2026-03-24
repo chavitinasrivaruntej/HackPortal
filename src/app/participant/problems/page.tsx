@@ -194,9 +194,9 @@ export default function ProblemStatementsPage() {
 
                                     <button
                                         onClick={() => setSelectedProblem(prob)}
-                                        className="w-full mt-2 py-2.5 px-4 bg-muted hover:bg-muted/80 text-foreground font-medium text-sm rounded-lg transition-colors border border-border"
+                                        className="w-full mt-2 py-2.5 px-4 bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-sm rounded-lg transition-all shadow-md shadow-emerald-500/10 hover:shadow-emerald-500/20"
                                     >
-                                        View Details
+                                        Choose Problem
                                     </button>
                                 </div>
                             </div>
@@ -284,14 +284,14 @@ export default function ProblemStatementsPage() {
                                 <button
                                     onClick={handleSelect}
                                     disabled={actionLoading}
-                                    className="px-5 py-2.5 rounded-xl font-medium text-sm flex items-center gap-2 bg-accent text-accent-foreground hover:bg-accent/90 transition-colors shadow-lg shadow-accent/20"
+                                    className="px-5 py-2.5 rounded-xl font-bold text-sm flex items-center gap-2 bg-emerald-500 text-white hover:bg-emerald-600 transition-all shadow-lg shadow-emerald-500/20"
                                 >
                                     {actionLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Confirm Final Selection"}
                                 </button>
                             ) : (
                                 <button
                                     onClick={() => setConfirming(true)}
-                                    className="px-5 py-2.5 rounded-xl font-medium text-sm bg-accent text-accent-foreground hover:bg-accent/90 transition-colors shadow-md shadow-accent/20"
+                                    className="px-5 py-2.5 rounded-xl font-bold text-sm bg-emerald-500 text-white hover:bg-emerald-600 transition-all shadow-md shadow-emerald-500/20"
                                 >
                                     Choose This Problem
                                 </button>

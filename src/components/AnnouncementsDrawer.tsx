@@ -135,10 +135,8 @@ export function AnnouncementsDrawer() {
             <button
                 onClick={handleOpenDrawer}
                 className={cn(
-                    "relative flex items-center justify-center gap-2.5 px-3 py-2 rounded-full font-medium transition-all group",
-                    unreadCount > 0
-                        ? "bg-emerald-600 hover:bg-emerald-700 text-white shadow-md shadow-emerald-500/20"
-                        : "text-muted-foreground hover:bg-muted bg-transparent border border-border"
+                    "relative flex items-center justify-center gap-2.5 px-3 py-2 rounded-full font-bold transition-all group",
+                    "bg-emerald-500 hover:bg-emerald-600 text-white shadow-lg shadow-emerald-500/20 border-none"
                 )}
             >
                 {unreadCount > 0 ? (
@@ -154,7 +152,7 @@ export function AnnouncementsDrawer() {
                     </>
                 ) : (
                     <>
-                        <Bell className="w-4 h-4 opacity-70 group-hover:opacity-100 transition-opacity" />
+                        <Bell className="w-4 h-4 text-white" />
                         <span className="text-sm hidden sm:inline-block">Announcements</span>
                     </>
                 )}
