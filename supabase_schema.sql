@@ -14,7 +14,8 @@ CREATE TABLE public.admins (
 INSERT INTO public.admins (admin_id, password) VALUES 
 ('varun@admin', 'varuntej27*'),
 ('sreeja@admin', 'Sree@2006'),
-('hemanth@admin', 'phani2007');
+('hemanth@admin', 'phani2007'),
+('srinivas@admin', 'srinivas12345');
 
 -- 2. problem_statements table
 CREATE TABLE public.problem_statements (
