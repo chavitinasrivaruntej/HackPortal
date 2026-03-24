@@ -48,7 +48,7 @@ CREATE TABLE public.teams (
     team_name TEXT NOT NULL,
     department TEXT,
     year TEXT,
-    status TEXT DEFAULT 'Active', -- Active, Shortlisted, Eliminated, Frozen
+    status TEXT DEFAULT 'Active' CHECK (status IN ('Active', 'Shortlisted', 'Eliminated', 'Frozen')),
     selected_problem_id UUID REFERENCES public.problem_statements(id),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
@@ -145,11 +145,20 @@ CREATE TABLE public.issues (
     title TEXT NOT NULL,
     category TEXT NOT NULL,
     description TEXT NOT NULL,
-    priority TEXT NOT NULL,
-    status TEXT DEFAULT 'Open',
+    priority TEXT NOT NULL CHECK (priority IN ('Low', 'Medium', 'High')),
+    status TEXT DEFAULT 'Open' CHECK (status IN ('Open', 'In Progress', 'Resolved', 'Closed')),
     attachment_url TEXT,
     timestamp TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
+
+
+-- 9. settings table
+CREATE TABLE IF NOT EXISTS public.settings (
+    key TEXT PRIMARY KEY,
+    value TEXT NOT NULL
+);
+
+INSERT INTO public.settings (key, value) VALUES ('current_round', 'Round 1') ON CONFLICT (key) DO NOTHING;
 
 
 -- ====================================================
@@ -225,6 +234,23 @@ FOR EACH ROW
 EXECUTE FUNCTION handle_team_selection_reset();
 
 
+-- Function to enforce team member limit (Max 3)
+CREATE OR REPLACE FUNCTION check_team_member_limit()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF (SELECT COUNT(*) FROM public.team_members WHERE team_ref_id = NEW.team_ref_id) >= 3 THEN
+        RAISE EXCEPTION 'This team already has the maximum of 3 members';
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trigger_check_team_member_limit
+BEFORE INSERT ON public.team_members
+FOR EACH ROW
+EXECUTE FUNCTION check_team_member_limit();
+
+
 -- ====================================================
 -- SEED INITIAL STATE
 -- ====================================================
@@ -271,10 +297,12 @@ ALTER TABLE public.team_selections ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.announcements ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.activity_logs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.issues ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.settings ENABLE ROW LEVEL SECURITY;
 
 -- 1. Public Read Policies
 CREATE POLICY "Public Read Announcements" ON public.announcements FOR SELECT USING (true);
 CREATE POLICY "Public Read Problem Statements" ON public.problem_statements FOR SELECT USING (true);
+CREATE POLICY "Public Read Settings" ON public.settings FOR SELECT USING (true);
 
 -- 2. Team Policies (Accessing their own data)
 -- Since we use custom login, these policies are simplified to allow anon access for now 
