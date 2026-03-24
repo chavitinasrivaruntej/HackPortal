@@ -18,6 +18,7 @@ type Team = {
     team_name: string;
     status: string;
     ps_serial: number | null;
+    ps_title: string | null;
 };
 
 type MarksMap = Record<string, { round1: string; round2: string; round3: string; dbId?: string }>;
@@ -48,7 +49,7 @@ export default function AdminMarksPage() {
         setLoading(true);
         const { data: teamsData } = await supabase
             .from("teams")
-            .select("id, team_id, team_name, status, problem_statements(serial_number)");
+            .select("id, team_id, team_name, status, problem_statements(serial_number, title)");
 
         const { data: marksData } = await supabase
             .from("team_marks")
@@ -64,6 +65,7 @@ export default function AdminMarksPage() {
             }).map((t: any) => ({
                 ...t,
                 ps_serial: t.problem_statements?.serial_number ?? null,
+                ps_title: t.problem_statements?.title ?? null,
             }));
             setTeams(sorted);
 
@@ -318,6 +320,7 @@ export default function AdminMarksPage() {
                                 <th className="px-5 py-4 w-10">#</th>
                                 <th className="px-5 py-4">Login ID</th>
                                 <th className="px-5 py-4">Team Name</th>
+                                <th className="px-5 py-4">Problem Statement</th>
                                 <th className="px-5 py-4">Status</th>
                                 <th className="px-5 py-4 text-center">
                                     <span className="flex items-center justify-center gap-1.5">
@@ -363,19 +366,26 @@ export default function AdminMarksPage() {
                                                 <span className="font-bold text-[15px] text-foreground">
                                                     {team.team_name}
                                                 </span>
-                                                {team.ps_serial != null ? (
-                                                    <span className="text-[11px] font-black px-2 py-0.5 rounded-md bg-accent/20 text-accent border border-accent/30 tracking-wide">
-                                                        PS#{team.ps_serial}
-                                                    </span>
-                                                ) : (
-                                                    <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-muted text-muted-foreground/50 border border-border/30 italic">
-                                                        No PS
-                                                    </span>
-                                                )}
                                                 {isSaved && (
                                                     <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
                                                 )}
                                             </div>
+                                        </td>
+
+                                        {/* Problem Statement */}
+                                        <td className="px-5 py-3.5 max-w-[220px]">
+                                            {team.ps_serial != null ? (
+                                                <div className="flex items-center gap-2">
+                                                    <span className="shrink-0 text-[11px] font-black px-2 py-0.5 rounded-md bg-accent/20 text-accent border border-accent/30 tracking-wide">
+                                                        PS#{team.ps_serial}
+                                                    </span>
+                                                    <span className="text-[13px] text-foreground font-medium leading-snug line-clamp-2" title={team.ps_title ?? ""}>
+                                                        {team.ps_title}
+                                                    </span>
+                                                </div>
+                                            ) : (
+                                                <span className="text-xs text-muted-foreground italic">Unassigned</span>
+                                            )}
                                         </td>
 
                                         {/* Status */}
@@ -463,7 +473,7 @@ export default function AdminMarksPage() {
 
                             {teams.length === 0 && (
                                 <tr>
-                                    <td colSpan={7} className="px-6 py-16 text-center text-muted-foreground">
+                                    <td colSpan={8} className="px-6 py-16 text-center text-muted-foreground">
                                         <div className="flex flex-col items-center gap-3">
                                             <Trophy className="w-8 h-8 opacity-20" />
                                             <p>No teams found. Register teams first.</p>
