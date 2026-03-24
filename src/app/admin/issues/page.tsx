@@ -4,8 +4,11 @@ import { useState, useEffect } from "react";
 import { useIssuesStore, Issue, IssueStatus } from "@/store/useIssuesStore";
 import { Search, Filter, AlertCircle, Clock, CheckCircle2, XCircle, ChevronRight, X, User, Trash2 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
+import { useAuthStore } from "@/store/useAuthStore";
+import { logAdminAction } from "@/lib/logAdminAction";
 
 export default function AdminIssuesPage() {
+    const { user } = useAuthStore();
     const issues = useIssuesStore((state) => state.issues);
     const updateIssueStatus = useIssuesStore((state) => state.updateIssueStatus);
     const deleteIssue = useIssuesStore((state) => state.deleteIssue);
@@ -61,6 +64,13 @@ export default function AdminIssuesPage() {
         updateIssueStatus(id, newStatus);
         if (selectedIssue && selectedIssue.id === id) {
             setSelectedIssue({ ...selectedIssue, status: newStatus });
+        }
+        if (user?.id) {
+            const issue = issues.find(i => i.id === id);
+            logAdminAction(
+                `Updated issue ${id} status to "${newStatus}"${issue ? ` (${issue.teamName}: ${issue.title})` : ""}`,
+                user.id
+            );
         }
     };
 
@@ -223,6 +233,7 @@ export default function AdminIssuesPage() {
                                 <button 
                                     onClick={() => {
                                         if (confirm("Are you sure you want to permanently delete this issue?")) {
+                                            if (user?.id) logAdminAction(`Deleted issue ${selectedIssue.id}: "${selectedIssue.title}" (${selectedIssue.teamName})`, user.id);
                                             deleteIssue(selectedIssue.id);
                                             setSelectedIssue(null);
                                         }

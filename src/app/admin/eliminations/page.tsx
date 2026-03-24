@@ -2,9 +2,12 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
+import { useAuthStore } from "@/store/useAuthStore";
+import { logAdminAction } from "@/lib/logAdminAction";
 import { Loader2, UserMinus, RotateCcw, ShieldCheck } from "lucide-react";
 
 export default function AdminEliminationsPage() {
+    const { user } = useAuthStore();
     const [teams, setTeams] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
 
@@ -35,6 +38,7 @@ export default function AdminEliminationsPage() {
     const restoreTeam = async (id: string, name: string) => {
         if (confirm(`Restore ${name} back to Active status?`)) {
             await supabase.from("teams").update({ status: "Active" }).eq("id", id);
+            if (user?.id) await logAdminAction(`Restored team to Active: ${name}`, user.id, id);
             fetchEliminatedTeams();
         }
     };
